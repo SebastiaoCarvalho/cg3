@@ -7,6 +7,8 @@ var materials;
 
 var globalClock, deltaTime;
 
+var skydome;
+
 /////////////////////
 /* CREATE SCENE(S) */
 /////////////////////
@@ -54,6 +56,20 @@ function createCamera(){
 ////////////////////////
 /* CREATE OBJECT3D(S) */
 ////////////////////////
+
+function createSkydome() {
+    "use strict";
+    skydome = new THREE.Object3D();
+    skydome.position.set(0, 0, 0);
+    const geometry = new THREE.SphereGeometry(100, 32, 32);
+    const material = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        wireframe: true,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(0, 0, 0);
+    skydome.add(mesh);
+}
 
 //////////////////////
 /* CHECK COLLISIONS */
