@@ -9,12 +9,18 @@ var globalClock, deltaTime;
 
 var skydome;
 
+var directionalLight;
+
+var lightSwitch = false, alreadySwitchLight = false;
+
+const directionalLightIntensity = 30;
+
 /////////////////////
 /* CREATE SCENE(S) */
 /////////////////////
 function createScene(){
     'use strict';
-    const backgroundColor = new THREE.Color("rgb(200, 255, 255)");
+    const backgroundColor = new THREE.Color("rgb(0, 0, 0)");
 
     scene = new THREE.Scene();
     scene.background = backgroundColor;
@@ -59,7 +65,14 @@ function createCamera(){
 /////////////////////
 /* CREATE LIGHT(S) */
 /////////////////////
-
+function createLights() {
+    "use strict";
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    scene.add(ambientLight);
+    directionalLight = new THREE.DirectionalLight(0xffffff, directionalLightIntensity);
+    /* directionalLight.target.position.set(0, 10, 0); */
+    scene.add(directionalLight);
+}
 ////////////////////////
 /* CREATE OBJECT3D(S) */
 ////////////////////////
@@ -171,6 +184,23 @@ function createGround() {
     scene.add(ground);
 }
 
+function createMoon() {
+    "use strict";
+    const moon = new THREE.Object3D();
+    
+    const geometry = new THREE.SphereGeometry(10, 32, 32);
+    const material = new THREE.MeshStandardMaterial({
+        color: 0xffd45f,
+        wireframe: true,
+        emissive: 0xffd45f,
+        emissiveIntensity: 1.5,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(0, 40, 0);
+    moon.add(mesh);
+    scene.add(moon);
+}
+
 //////////////////////
 /* CHECK COLLISIONS */
 //////////////////////
@@ -192,7 +222,10 @@ function handleCollisions(){
 ////////////
 function update(){
     'use strict';
-
+    if (lightSwitch && ! alreadySwitchLight) {
+        directionalLight.intensity = directionalLightIntensity - directionalLight.intensity;
+        alreadySwitchLight = true;
+    }
 }
 
 /////////////
@@ -221,12 +254,16 @@ function init() {
     //createSkydome();
 
     createTrees(3);
-
+    createLights();
+    createGround();
+    createSkydome();
+    createMoon();
 
     globalClock = new THREE.Clock(true);
     deltaTime = globalClock.getDelta();
 
-    
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
 }
 
 /////////////////////
@@ -256,7 +293,10 @@ function onResize() {
 ///////////////////////
 function onKeyDown(e) {
     'use strict';
-
+    switch (e.keyCode) {
+        case 68: // letter D/d
+            lightSwitch = true;
+    }
 }
 
 ///////////////////////
@@ -264,5 +304,9 @@ function onKeyDown(e) {
 ///////////////////////
 function onKeyUp(e){
     'use strict';
-
+    switch (e.keyCode) {
+        case 68: // letter D/d
+            lightSwitch = false;
+            alreadySwitchLight = false;
+    }
 }
