@@ -43,7 +43,7 @@ function createCamera(){
         near,
         far
     );
-    tempCamera.position.set(0, distance, 0);
+    tempCamera.position.set(distance, 0, 0);
     tempCamera.lookAt(scene.position);
     mainCamera = tempCamera;
     /* cameras.push(tempCamera); */
@@ -56,6 +56,17 @@ function createCamera(){
 ////////////////////////
 /* CREATE OBJECT3D(S) */
 ////////////////////////
+
+function createTree() {
+    const geometry = new THREE.CylinderGeometry(1.5,1.5,7,32);
+    const material = new THREE.MeshBasicMaterial({
+        color: 0xff0000,
+        wireframe: true,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(0,0,0);
+    scene.add(mesh) 
+}
 
 function createSkydome() {
     "use strict";
@@ -135,8 +146,9 @@ function init() {
 
     createScene();
     createCamera();
-    createGround();
-    createSkydome();
+    //createGround();
+    //createSkydome();
+    createTree();
 
     globalClock = new THREE.Clock(true);
     deltaTime = globalClock.getDelta();
