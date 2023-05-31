@@ -34,7 +34,7 @@ function createCamera(){
     const near = 1;
     const far = 1000;
     const distance = 40;
-    const isometricDistance = 50;
+    const isometricDistance = 70;
     tempCamera = new THREE.OrthographicCamera(
         -isometricDistance * aspect,
         isometricDistance * aspect,
@@ -61,14 +61,32 @@ function createSkydome() {
     "use strict";
     skydome = new THREE.Object3D();
     skydome.position.set(0, 0, 0);
-    const geometry = new THREE.SphereGeometry(100, 32, 32);
+    const geometry = new THREE.SphereGeometry( 80, 32, 32, 0, Math.PI * 2, 0, Math.PI / 4);
     const material = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: 0xff0000,
         wireframe: true,
     });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(0, 0, 0);
     skydome.add(mesh);
+    scene.add(skydome);
+}
+
+function createGround() {
+    "use strict";
+    const map = new THREE.TextureLoader().load('pene.png');
+
+    const groundMat = new THREE.MeshStandardMaterial({
+        color : 0x000000,
+        wireframe : true,
+        displacementMap : map,
+        displacementScale : 50,
+    });
+
+    const groundGeo = new THREE.PlaneGeometry(100, 100, 100, 100);
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = - Math.PI / 2;
+    scene.add(ground);
 }
 
 //////////////////////
@@ -117,23 +135,13 @@ function init() {
 
     createScene();
     createCamera();
+    createGround();
+    createSkydome();
 
     globalClock = new THREE.Clock(true);
     deltaTime = globalClock.getDelta();
 
-    const map = new THREE.TextureLoader().load('pene.png');
-
-    const groundMat = new THREE.MeshStandardMaterial({
-        color : 0x000000,
-        wireframe : true,
-        displacementMap : map,
-        displacementScale : 50,
-    });
-
-    const groundGeo = new THREE.PlaneGeometry(100, 100, 100, 100);
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = - Math.PI / 2;
-    scene.add(ground);
+    
 }
 
 /////////////////////
