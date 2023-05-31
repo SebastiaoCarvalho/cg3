@@ -3,9 +3,9 @@
 //////////////////////
 var mainCamera, cameras;
 var renderer, scene;
-var materials;
-
-var globalClock, deltaTime;
+var material, mesh;
+var globalClock, deltaTime,robot;
+var colorCodes;
 
 var skydome;
 
@@ -44,8 +44,18 @@ function createScene(){
     const backgroundColor = new THREE.Color("rgb(0, 0, 0)");
 
     scene = new THREE.Scene();
+    scene.add(new THREE.AxesHelper(1000))
     scene.background = backgroundColor;
 
+    var material = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+    });
+    var geometry = new THREE.BoxGeometry(100, 0, 100);
+    var mesh = new THREE.Mesh(geometry, material);
+
+    scene.add(mesh);
+
+    fillScene();
 }
 
 //////////////////////
@@ -57,7 +67,6 @@ function createCamera(){
     const right = 140;
     const top = 75;
     const down = -75;
-    const fov = 70;
     const near = 1;
     const far = 1000;
     const distance = 40;
@@ -186,6 +195,32 @@ function addTopOnTree(obj, posVector, dimensionVector) {
     
     ellipsoidMesh.position.set(posVector.x+3, posVector.y+5, posVector.z-5);
     obj.add(ellipsoidMesh);
+}
+
+function getRandomNumber(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function fillScene() {
+    colorCodes = [];
+    colorCodes.push(0xffffff);
+    colorCodes.push(0xffff00);
+    colorCodes.push(0xadd8e6);
+    colorCodes.push(0xb19cd9);
+    for (let i = 0; i < 800; i++) {
+        addCircle(getRandomNumber(-49,49), getRandomNumber(-49,49), i);
+    }
+}
+
+function addCircle(x, z, i) {
+    var i = Math.floor(i/200);
+    console.log(i);
+    geometry = new THREE.CircleGeometry(0.25, 32); 
+    material = new THREE.MeshBasicMaterial( { color: colorCodes[i] } ); 
+    const circle = new THREE.Mesh( geometry, material ); 
+    circle.position.set(x,0.01,z);
+    circle.rotation.x = -Math.PI/2
+    scene.add( circle );
 }
 
 function createSkydome() {
