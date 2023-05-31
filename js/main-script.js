@@ -36,14 +36,14 @@ function createCamera(){
     const distance = 40;
     const isometricDistance = 70;
     tempCamera = new THREE.OrthographicCamera(
-        -isometricDistance * aspect,
-        isometricDistance * aspect,
-        isometricDistance,
-        -isometricDistance,
+        left,
+        right,
+        top,
+        down,
         near,
         far
     );
-    tempCamera.position.set(isometricDistance, isometricDistance, isometricDistance);
+    tempCamera.position.set(0, distance, 0);
     tempCamera.lookAt(scene.position);
     mainCamera = tempCamera;
     /* cameras.push(tempCamera); */
@@ -61,7 +61,7 @@ function createSkydome() {
     "use strict";
     skydome = new THREE.Object3D();
     skydome.position.set(0, 0, 0);
-    const geometry = new THREE.SphereGeometry( 80, 32, 32, 0, Math.PI * 2, 0, Math.PI / 4);
+    const geometry = new THREE.SphereGeometry( 50, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
     const material = new THREE.MeshBasicMaterial({
         color: 0xff0000,
         wireframe: true,
