@@ -6,6 +6,7 @@ var renderer, scene;
 var material, mesh;
 var globalClock, deltaTime,robot;
 var colorCodes;
+var strDownloadMime = "image/octet-stream";
 
 var skydome;
 
@@ -44,13 +45,12 @@ function createScene(){
     const backgroundColor = new THREE.Color("rgb(0, 0, 0)");
 
     scene = new THREE.Scene();
-    scene.add(new THREE.AxesHelper(1000))
     scene.background = backgroundColor;
 
     var material = new THREE.MeshBasicMaterial({
         color: 0x00ff00,
     });
-    var geometry = new THREE.BoxGeometry(100, 0, 100);
+    var geometry = new THREE.BoxGeometry(1920, 0, 936);
     var mesh = new THREE.Mesh(geometry, material);
 
     scene.add(mesh);
@@ -208,7 +208,7 @@ function fillScene() {
     colorCodes.push(0xadd8e6);
     colorCodes.push(0xb19cd9);
     for (let i = 0; i < 800; i++) {
-        addCircle(getRandomNumber(-49,49), getRandomNumber(-49,49), i);
+        addCircle(getRandomNumber(-140,140), getRandomNumber(-75,75), i);
     }
 }
 
@@ -426,11 +426,23 @@ function render() {
 function init() {
     'use strict';
 
+    var saveLink = document.createElement('div');
+    saveLink.style.position = 'absolute';
+    saveLink.style.top = '10px';
+    saveLink.style.width = '100%';
+    saveLink.style.color = 'white !important';
+    saveLink.style.textAlign = 'center';
+    saveLink.innerHTML =
+    '<a href="#" id="saveLink">Save Frame</a>';
+    document.body.appendChild(saveLink);
+    document.getElementById("saveLink").addEventListener('click', saveAsImage);
     renderer = new THREE.WebGLRenderer({
         antialias: true,
+        preserveDrawingBuffer: true ,
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
+    
 
     createScene();
     createCamera();
@@ -536,3 +548,6 @@ function onKeyUp(e){
             break;
     }
 }
+
+
+
