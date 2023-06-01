@@ -5,9 +5,9 @@ var mainCamera, cameras;
 var renderer, scene;
 var material, mesh;
 var globalClock, deltaTime,robot;
-var colorCodes;
 var strDownloadMime = "image/octet-stream";
-
+var number1Pressed, number2Pressed, removePressed;
+var colorCodes
 var skydome;
 
 var ovni;
@@ -45,17 +45,6 @@ function createScene(){
     const backgroundColor = new THREE.Color("rgb(0, 0, 0)");
 
     scene = new THREE.Scene();
-    scene.background = backgroundColor;
-
-    var material = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
-    });
-    var geometry = new THREE.BoxGeometry(1920, 0, 936);
-    var mesh = new THREE.Mesh(geometry, material);
-
-    scene.add(mesh);
-
-    fillScene();
 }
 
 //////////////////////
@@ -201,7 +190,102 @@ function getRandomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-function fillScene() {
+function createScene2() {
+    var geometry = new THREE.BoxGeometry(280, 0, 150);
+    geometry.computeBoundingBox();
+    var material = new THREE.ShaderMaterial({
+    uniforms: {
+        color1: {
+        value: new THREE.Color("red")
+        },
+        color2: {
+        value: new THREE.Color("purple")
+        },
+        bboxMin: {
+        value: geometry.boundingBox.min
+        },
+        bboxMax: {
+        value: geometry.boundingBox.max
+        }
+    },
+    vertexShader: `
+        uniform vec3 bboxMin;
+        uniform vec3 bboxMax;
+    
+        varying vec2 vUv;
+
+        void main() {
+        vUv.y = (position.y - bboxMin.y) / (bboxMax.y - bboxMin.y);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform vec3 color1;
+        uniform vec3 color2;
+    
+        varying vec2 vUv;
+        
+        void main() {
+        
+        gl_FragColor = vec4(mix(color1, color2, vUv.y), 1.0);
+        }
+    `,
+    });
+    /*
+    var material = new THREE.ShaderMaterial({
+        uniforms: {
+            time: { value: 1.0 },
+            resolution: { value: new THREE.Vector2() },
+            colors: { 
+                value: [new THREE.Color('#ff0000'), new THREE.Color('#0000ff')]
+          }
+        },
+        vertexShader: `
+                varying float h; 
+
+                void main() {
+                h = position.y;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+  fragmentShader: `
+            uniform vec3 colors[2]; 
+
+            varying float h;
+
+            void main() {
+            float f = (h + 100.) / 200.;  // linear interpolation
+                                        // but you can also use 'smoothstep'
+            f = clamp(f, 0., 1.);
+            gl_FragColor = vec4(mix(colors[0], colors[1], f), 1.0);
+            }`
+    });*/
+    var mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    fillScene2();
+}
+
+function fillScene2() {
+    colorCodes = []
+    colorCodes.push(0xffffff);
+    for (let i = 0; i < 800; i++) {
+        addCircle(getRandomNumber(-140,140), getRandomNumber(-75,75), 0);
+    }
+}
+
+function createScene1() {
+    var material = new THREE.MeshBasicMaterial({
+        color: 0x90ee90,
+    });
+    var geometry = new THREE.BoxGeometry(1920, 0, 936);
+    var mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    fillScene1();
+}
+
+function fillScene1() {
     colorCodes = [];
     colorCodes.push(0xffffff);
     colorCodes.push(0xffff00);
@@ -253,6 +337,23 @@ function createGround() {
     const ground = new THREE.Mesh(groundGeo, groundMat);
     ground.rotation.x = - Math.PI / 2;
     scene.add(ground);
+}
+
+function createMoon() {
+    "use strict";
+    const moon = new THREE.Object3D();
+    
+    const geometry = new THREE.SphereGeometry(10, 32, 32);
+    const material = new THREE.MeshStandardMaterial({
+        color: 0xffd45f,
+        wireframe: true,
+        emissive: 0xffd45f,
+        emissiveIntensity: 1.5,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(0, 50, 0);
+    moon.add(mesh);
+    scene.add(moon);
 }
 
 function createMoon() {
@@ -358,7 +459,7 @@ function handleCollisions(){
 ////////////
 /* UPDATE */
 ////////////
-function update(){
+async function update(){
     'use strict';
 
     spotLight.target.position.set(ovni.position.x, 0, ovni.position.z);
@@ -466,7 +567,7 @@ function init() {
 /////////////////////
 /* ANIMATION CYCLE */
 /////////////////////
-function animate() {
+async function animate() {
     'use strict';
 
     deltaTime = globalClock.getDelta();
@@ -482,6 +583,12 @@ function animate() {
 ////////////////////////////
 function onResize() { 
     'use strict';
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    if (window.innerHeight > 0 && window.innerWidth > 0) {
+        mainCamera.aspect = window.innerWidth / window.innerHeight;
+        mainCamera.updateProjectionMatrix();
+    }
 
 }
 
