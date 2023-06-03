@@ -1,14 +1,14 @@
 //////////////////////
 /* GLOBAL VARIABLES */
 //////////////////////
-var mainCamera, cameras;
-var renderer, scene;
+var mainCamera, cameras, camera;
+var renderer, rendererSky, rendererGround;
+var scene, sceneSky, sceneGround;
 var material, mesh;
 var globalClock, deltaTime,robot;
-var strDownloadMime = "image/octet-stream";
-var number1Pressed, number2Pressed, removePressed;
-var colorCodes
-var skydome;
+var number1Pressed = false, number2Pressed = false;
+var colorCodes, skyCreated, groundCreated;
+var skydome, object;
 
 var ovni;
 var spheres = [];
@@ -16,6 +16,7 @@ var spheres = [];
 var directionalLight, spotLight, pointLights = [];
 
 var leftArrowPressed = false, upArrowPressed = false, rightArrowPressed = false, downArrowPressed = false;
+
 
 var directionalLightSwitch = false, alreadySwitchDirectionalLight = false;
 var pointLightSwitch = false, alreadySwitchPointLight = false;
@@ -115,11 +116,83 @@ function getRandomNumber(min, max) {
     return Math.random() * (max - min) + min;
 }
 
+
+
 function createTrees(numberOfTrees) {
     for (let i = 0; i < numberOfTrees; i++) {
         const dimension = new THREE.Vector3(3, 3, getRandomNumber(15,20));
         const v = new THREE.Vector3(0, 0, i*30);
         createTree(v, dimension);
+    }
+}
+
+function createTree(posVector, dimensionVector) {
+    tree = new THREE.Object3D();
+
+    const i = getRandomNumber(Math.PI/30, Math.PI/16);
+    addBranch(tree, posVector, dimensionVector, new THREE.Vector3(i,0,0));
+
+    const branchPos = new THREE.Vector3(posVector.x+2,posVector.y+2,posVector.z-1); 
+    const branchDim = new THREE.Vector3(dimensionVector.x/3, dimensionVector.y/3, dimensionVector.z/2);
+    addBranch(tree, branchPos, branchDim, new THREE.Vector3(0, 0, -i*3)); 
+    
+   
+    const bbox = new THREE.Box3().setFromObject(tree);
+    const topPos = new THREE.Vector3(bbox.max.x, bbox.max.y, bbox.max.z)
+    addTopOnTree(tree, topPos, dimensionVector);
+
+    scene.add(tree);   
+}
+
+function addBranch(obj, posVector, dimensionVector, rotationVector) {
+    const geometry = new THREE.CylinderGeometry(dimensionVector.x,dimensionVector.y,dimensionVector.z,32);
+    const material = new THREE.MeshBasicMaterial({
+        color: 0x884802,
+        //wireframe: true,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    mesh.rotation.x = rotationVector.x;
+    mesh.rotation.y = rotationVector.y;
+    mesh.rotation.z = rotationVector.z;
+    mesh.position.set(posVector.x,posVector.y,posVector.z);
+
+    var bbox = new THREE.Box3().setFromObject(mesh);
+    let maxPos = new THREE.Vector3(bbox.max.x, bbox.max.y, bbox.max.z-3);
+
+    addTopPartOnBranch(obj, maxPos, dimensionVector, rotationVector);
+    obj.add(mesh);
+}
+
+function addTopPartOnBranch(obj, posVector, dimensionVector) {
+    const ellipsoidGeometry = new THREE.SphereGeometry(0.5, 32, 16);
+    const material = new THREE.MeshBasicMaterial({
+        color: 0x006400,
+        //wireframe: true,
+    });
+
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    var material = new THREE.MeshBasicMaterial({ vertexColors: true });
+
+    var mesh = new THREE.Mesh(geometry, material);
+    object.add(mesh);
+    fillSceneSky(object);
+    sceneSky.add(object);
+
+    rendererSky.render(sceneSky, cameraSky);
+}
+
+
+function getRandomNumber(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function fillSceneSky(object) {
+    colorCodes = []
+    colorCodes.push(0xffffff);
+    for (let i = 0; i < 100; i++) {
+        addCircle(getRandomNumber(-2,2), getRandomNumber(-2,2), 0, object);
     }
 }
 
@@ -186,125 +259,88 @@ function addTopOnTree(obj, posVector, dimensionVector) {
     obj.add(ellipsoidMesh);
 }
 
-function getRandomNumber(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
-}
+function createGround() {
+    const cameraGround = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
+    cameraGround.position.set(0, 0, 10);
+    cameraGround.lookAt(new THREE.Vector3(0, 0, 0));
 
-function createScene2() {
-    var geometry = new THREE.BoxGeometry(280, 0, 150);
-    geometry.computeBoundingBox();
-    var material = new THREE.ShaderMaterial({
-    uniforms: {
-        color1: {
-        value: new THREE.Color("red")
-        },
-        color2: {
-        value: new THREE.Color("purple")
-        },
-        bboxMin: {
-        value: geometry.boundingBox.min
-        },
-        bboxMax: {
-        value: geometry.boundingBox.max
-        }
-    },
-    vertexShader: `
-        uniform vec3 bboxMin;
-        uniform vec3 bboxMax;
-    
-        varying vec2 vUv;
-
-        void main() {
-        vUv.y = (position.y - bboxMin.y) / (bboxMax.y - bboxMin.y);
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-        }
-    `,
-    fragmentShader: `
-        uniform vec3 color1;
-        uniform vec3 color2;
-    
-        varying vec2 vUv;
-        
-        void main() {
-        
-        gl_FragColor = vec4(mix(color1, color2, vUv.y), 1.0);
-        }
-    `,
-    });
-    /*
-    var material = new THREE.ShaderMaterial({
-        uniforms: {
-            time: { value: 1.0 },
-            resolution: { value: new THREE.Vector2() },
-            colors: { 
-                value: [new THREE.Color('#ff0000'), new THREE.Color('#0000ff')]
-          }
-        },
-        vertexShader: `
-                varying float h; 
-
-                void main() {
-                h = position.y;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                }
-            `,
-  fragmentShader: `
-            uniform vec3 colors[2]; 
-
-            varying float h;
-
-            void main() {
-            float f = (h + 100.) / 200.;  // linear interpolation
-                                        // but you can also use 'smoothstep'
-            f = clamp(f, 0., 1.);
-            gl_FragColor = vec4(mix(colors[0], colors[1], f), 1.0);
-            }`
-    });*/
-    var mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
-
-    fillScene2();
-}
-
-function fillScene2() {
-    colorCodes = []
-    colorCodes.push(0xffffff);
-    for (let i = 0; i < 800; i++) {
-        addCircle(getRandomNumber(-140,140), getRandomNumber(-75,75), 0);
-    }
-}
-
-function createScene1() {
+    object = new THREE.Object3D();
+    sceneGround = new THREE.Scene();
+    var geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
     var material = new THREE.MeshBasicMaterial({
         color: 0x90ee90,
     });
-    var geometry = new THREE.BoxGeometry(1920, 0, 936);
-    var mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
 
-    fillScene1();
+    var mesh = new THREE.Mesh(geometry, material);
+    object.add(mesh);
+    fillSceneGround(object);
+    sceneGround.add(object);
+    
+    rendererGround.render(sceneGround, cameraGround);
 }
 
-function fillScene1() {
+function createSky() {
+    const cameraSky = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
+    cameraSky.position.set(0, 0, 10);
+    cameraSky.lookAt(new THREE.Vector3(0, 0, 0));
+
+    object = new THREE.Object3D();
+    sceneSky = new THREE.Scene();
+    var geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
+
+    let a = { r: 0.00, g: 0.0467, b: 0.280 } // Dark blue
+    let b = { r: 0.224, g: 0.00, b: 0.280 }  // Dark purple
+
+    var colors = new Float32Array([
+        a.r, a.g, a.b,      // top left
+        a.r, a.g, a.b,      // top right
+        b.r, b.g, b.b,      // bottom left
+        b.r, b.g, b.b ]);   // bottom right
+
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    var material = new THREE.MeshBasicMaterial({ vertexColors: true });
+
+    var mesh = new THREE.Mesh(geometry, material);
+    object.add(mesh);
+    fillSceneSky(object);
+    sceneSky.add(object);
+
+    rendererSky.render(sceneSky, cameraSky);
+}
+
+
+function getRandomNumber(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function fillSceneSky(object) {
+    colorCodes = []
+    colorCodes.push(0xffffff);
+    for (let i = 0; i < 100; i++) {
+        addCircle(getRandomNumber(-2,2), getRandomNumber(-2,2), 0, object);
+    }
+}
+
+
+function fillSceneGround(object) {
     colorCodes = [];
     colorCodes.push(0xffffff);
     colorCodes.push(0xffff00);
     colorCodes.push(0xadd8e6);
     colorCodes.push(0xb19cd9);
-    for (let i = 0; i < 800; i++) {
-        addCircle(getRandomNumber(-140,140), getRandomNumber(-75,75), i);
+    for (let i = 0; i < 100; i++) {
+        addCircle(getRandomNumber(-2,2), getRandomNumber(-2,2), i, object);
     }
 }
 
-function addCircle(x, z, i) {
-    var i = Math.floor(i/200);
-    console.log(i);
-    geometry = new THREE.CircleGeometry(0.25, 32); 
+function addCircle(x, y, i, object) {
+    var i = Math.floor(i/25);
+    geometry = new THREE.CircleGeometry(0.03, 32); 
     material = new THREE.MeshBasicMaterial( { color: colorCodes[i] } ); 
-    const circle = new THREE.Mesh( geometry, material ); 
-    circle.position.set(x,0.01,z);
-    circle.rotation.x = -Math.PI/2
-    scene.add( circle );
+    const circle = new THREE.Mesh(geometry, material); 
+    circle.position.set(x,y,0);
+    object.add(circle);
 }
 
 function createSkydome() {
@@ -320,9 +356,11 @@ function createSkydome() {
     mesh.position.set(0, 0, 0);
     skydome.add(mesh);
     scene.add(skydome);
+
 }
 
 function createGround() {
+
     "use strict";
     const map = new THREE.TextureLoader().load('pene.png');
 
@@ -459,8 +497,13 @@ function handleCollisions(){
 ////////////
 /* UPDATE */
 ////////////
-async function update(){
+function update(){
     'use strict';
+    if (number1Pressed) {
+        createGround();
+    }
+    else if (number2Pressed) {
+        createSky();
 
     spotLight.target.position.set(ovni.position.x, 0, ovni.position.z);
     for (var i = 0; i < pointLights.length; i++) {
@@ -527,26 +570,20 @@ function render() {
 function init() {
     'use strict';
 
-    var saveLink = document.createElement('div');
-    saveLink.style.position = 'absolute';
-    saveLink.style.top = '10px';
-    saveLink.style.width = '100%';
-    saveLink.style.color = 'white !important';
-    saveLink.style.textAlign = 'center';
-    saveLink.innerHTML =
-    '<a href="#" id="saveLink">Save Frame</a>';
-    document.body.appendChild(saveLink);
-    document.getElementById("saveLink").addEventListener('click', saveAsImage);
-    renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        preserveDrawingBuffer: true ,
+    rendererGround = new THREE.WebGLRenderer({
+        preserveDrawingBuffer: true 
     });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
+    rendererGround.setSize(400, 400);
+    document.body.appendChild(rendererGround.domElement);
     
-
-    createScene();
-    createCamera();
+    rendererSky = new THREE.WebGLRenderer({
+        preserveDrawingBuffer: true 
+    });
+    rendererSky.setSize(400, 400);
+    document.body.appendChild(rendererSky.domElement);
+    
+    //createScene();
+    //createCamera();
     //createGround();
     //createSkydome();
 
@@ -567,13 +604,14 @@ function init() {
 /////////////////////
 /* ANIMATION CYCLE */
 /////////////////////
-async function animate() {
+function animate() {
     'use strict';
 
     deltaTime = globalClock.getDelta();
 
     update();
-    render();
+    //render();
+
 
     requestAnimationFrame(animate);
 }
@@ -583,7 +621,7 @@ async function animate() {
 ////////////////////////////
 function onResize() { 
     'use strict';
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    //renderer.setSize(window.innerWidth, window.innerHeight);
 
     if (window.innerHeight > 0 && window.innerWidth > 0) {
         mainCamera.aspect = window.innerWidth / window.innerHeight;
@@ -598,6 +636,10 @@ function onResize() {
 function onKeyDown(e) {
     'use strict';
     switch (e.keyCode) {
+        case 49:
+            number1Pressed = true;
+        case 50: 
+            number2Pressed = true;
         case 68: // letter D/d
             directionalLightSwitch = true;
             break;
@@ -629,6 +671,11 @@ function onKeyDown(e) {
 function onKeyUp(e){
     'use strict';
     switch (e.keyCode) {
+        case 49:
+            number1Pressed = false;
+        case 50: 
+            number2Pressed = false;
+
         case 68: // letter D/d
             directionalLightSwitch = false;
             alreadySwitchDirectionalLight = false;
