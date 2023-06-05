@@ -667,6 +667,3 @@ function onKeyUp(e){
             break;
     }
 }
-
-
-
