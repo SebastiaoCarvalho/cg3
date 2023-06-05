@@ -62,7 +62,7 @@ function createScene(){
     const backgroundColor = new THREE.Color("rgb(0, 0, 0)");
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color( 0xc5ccee );
+    scene.background = new THREE.Color( backgroundColor );
 }
 
 //////////////////////
@@ -88,13 +88,13 @@ function createCamera(){
         far
     );
     //tempCamera.position.set(distance, 0, 0);
-    //tempCamera.position.set(0, 0, distance);
-    tempCamera.lookAt(scene.position);
+    //tempCamera.position.set(0, distance, 0);
+    //tempCamera.lookAt(scene.position);
 
     
     tempCamera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    tempCamera.position.set(isometricDistance, 30, isometricDistance);
-    tempCamera.lookAt(scene.position);
+    tempCamera.position.set(-30, 30, 0);
+    tempCamera.lookAt(10,10,10);
 
     mainCamera = tempCamera;
     /* cameras.push(tempCamera); */
@@ -138,9 +138,10 @@ function getRandomNumber(min, max) {
 function createTrees(numberOfTrees) {
     "use strict";
 
+    
     for (let i = 0; i < numberOfTrees; i++) {
-        const dimension = new THREE.Vector3(3, 3, getRandomNumber(15,20));
-        const v = new THREE.Vector3(0, 0, i*30);
+        const dimension = new THREE.Vector3(1, 1, getRandomNumber(7,12));
+        const v = new THREE.Vector3(0, 20, i*30);
         createTree(v, dimension);
     }
 }
@@ -198,7 +199,7 @@ function addTopPartOnBranch(obj, posVector, dimensionVector) {
     ellipsoidGeometry.scale(dimensionVector.x*3.5, dimensionVector.y*1.25, dimensionVector.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
 
-    ellipsoidMesh.position.set(posVector.x, posVector.y+1, posVector.z);
+    ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z+2);
     obj.add(ellipsoidMesh);
 }
 
@@ -213,7 +214,7 @@ function addTopOnTree(obj, posVector, dimensionVector) {
     ellipsoidGeometry.scale(dimensionVector.x*1.75, dimensionVector.y*1.5, dimensionVector.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
     
-    ellipsoidMesh.position.set(posVector.x+3, posVector.y+5, posVector.z-5);
+    ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z-6);
     obj.add(ellipsoidMesh);
 }
 
@@ -281,7 +282,7 @@ function createSky() {
 
     skydomeMaterial = new THREE.MeshStandardMaterial({
         color: 0x00ff00,
-        wireframe: true,
+        //wireframe: true,
         map: new THREE.CanvasTexture(rendererSky.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping),
     });    
     console.log(skydomeMaterial);
@@ -461,7 +462,7 @@ function handleCollisions(){
 ////////////
 /* UPDATE */
 ////////////
-function update(){
+function update() {
     'use strict';
     
     if (number1Pressed) {
@@ -640,7 +641,6 @@ function onKeyUp(e){
             number1Pressed = false;
         case 50: 
             number2Pressed = false;
-
         case 68: // letter D/d
             directionalLightSwitch = false;
             alreadySwitchDirectionalLight = false;
