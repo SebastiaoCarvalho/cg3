@@ -2,9 +2,9 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 var mainCamera, cameras, camera;
-var renderer, rendererSky, rendererGround;
+var renderer, rendererSky, rendererGround, rende;
 var geometry, tree;
-var scene, sceneSky, sceneGround;
+var scene, sceneSky, sceneGround, cameraGround;
 var material, mesh;
 var globalClock, deltaTime,robot;
 var number1Pressed = false, number2Pressed = false;
@@ -12,15 +12,15 @@ var colorCodes, skyCreated, groundCreated;
 var skydome, object;
 var skyMaterial;
 var skydomeMaterial = new THREE.MeshStandardMaterial({
-    color: 0xff0000,
-    wireframe: true,
+    color: 0xff00ff,
+    side: THREE.Backside,
 });
 
 const map = new THREE.TextureLoader().load('pene.png');
 
 var groundMaterial = new THREE.MeshStandardMaterial({
-    color : 0x000000,
-    wireframe : true,
+    //color : 0xffffff,
+    //wireframe : true,
     displacementMap : map,
     displacementScale : 50,
 }); 
@@ -93,7 +93,7 @@ function createCamera(){
 
     
     tempCamera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    tempCamera.position.set(-30, 30, 0);
+    tempCamera.position.set(-40, 30, 0);
     tempCamera.lookAt(10,10,10);
 
     mainCamera = tempCamera;
@@ -210,7 +210,7 @@ function addTopOnTree(obj, posVector, dimensionVector) {
     const material = new THREE.MeshBasicMaterial({
         color: 0x006400,
         //wireframe: true,
-    });
+    }); THREE.RepeatWrapping, THREE.RepeatWrapping
     ellipsoidGeometry.scale(dimensionVector.x*1.75, dimensionVector.y*1.5, dimensionVector.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
     
@@ -218,11 +218,9 @@ function addTopOnTree(obj, posVector, dimensionVector) {
     obj.add(ellipsoidMesh);
 }
 
-
-
 function createGround() {
     "use strict";
-    const cameraGround = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
+    cameraGround = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
     cameraGround.position.set(0, 0, 10);
     cameraGround.lookAt(new THREE.Vector3(0, 0, 0));
     
@@ -240,13 +238,13 @@ function createGround() {
     
     rendererGround.render(sceneGround, cameraGround);
 
+    var texture = new THREE.CanvasTexture(rendererGround.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
+
     groundMaterial = new THREE.MeshStandardMaterial({
-        color : 0xff00000,
-        wireframe : true,
+        map : texture,
         displacementMap : map,
         displacementScale : 50,
     }); 
-    console.log(groundMaterial);
     createTerrain();
 }
 
@@ -280,12 +278,11 @@ function createSky() {
     
     rendererSky.render(sceneSky, cameraSky);
 
+    var texture = new THREE.CanvasTexture(rendererSky.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
     skydomeMaterial = new THREE.MeshStandardMaterial({
-        color: 0x00ff00,
-        //wireframe: true,
-        map: new THREE.CanvasTexture(rendererSky.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping),
+        map: texture,
+        side: THREE.BackSide,
     });    
-    console.log(skydomeMaterial);
     createSkydome();
 }
     
@@ -303,9 +300,9 @@ function fillSceneGround(object) {
     "use strict";
     colorCodes = [];
     colorCodes.push(0xffffff);
-    colorCodes.push(0xffff00);
     colorCodes.push(0xadd8e6);
     colorCodes.push(0xb19cd9);
+    colorCodes.push(0xffff00);
     for (let i = 0; i < 100; i++) {
         addCircle(getRandomNumber(-2,2), getRandomNumber(-2,2), i, object);
     }
@@ -325,12 +322,11 @@ function createSkydome() {
     "use strict";
     skydome = new THREE.Object3D();
     skydome.position.set(0, 0, 0);
-    const geometry = new THREE.SphereGeometry( 50, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+    const geometry = new THREE.SphereGeometry( 50, 32, 32, 0, Math.PI * 2, 0, Math.PI /2.5 );
     const mesh = new THREE.Mesh(geometry, skydomeMaterial);
     mesh.position.set(0, 0, 0);
     skydome.add(mesh);
     scene.add(skydome);
-    
 }
 
 function createTerrain() {
@@ -342,9 +338,12 @@ function createTerrain() {
     scene.add(ground);
 }
 
-function createMoon() {
+function createSquare() {
     "use strict";
-    const moon = new THREE.Object3D();
+    
+    cameraGround = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
+    cameraGround.position.set(0, 0, 10);
+    cameraGround.lookAt(new THREE.Vector3(0, 0, 0));
     
     const geometry = new THREE.SphereGeometry(10, 32, 32);
     const material = new THREE.MeshStandardMaterial({
@@ -366,7 +365,7 @@ function createMoon() {
     const geometry = new THREE.SphereGeometry(10, 32, 32);
     const material = new THREE.MeshStandardMaterial({
         color: 0xffd45f,
-        wireframe: true,
+        //wireframe: true,
         emissive: 0xffd45f,
         emissiveIntensity: 1.5,
     });
@@ -528,6 +527,7 @@ function moveZ(object, value, deltaTime) {
 function render() {
     'use strict';
     renderer.render(scene, mainCamera);
+    //rendererGround.render(sceneGround, cameraGround);
 }
 
 ////////////////////////////////
@@ -535,24 +535,30 @@ function render() {
 ////////////////////////////////
 function init() {
     'use strict';
-    
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
     
     rendererGround = new THREE.WebGLRenderer();
-    rendererGround.setSize(400, 400);
+    rendererGround.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(rendererGround.domElement);
-    
+
     rendererSky = new THREE.WebGLRenderer();
-    rendererSky.setSize(400, 400);
+    rendererSky.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(rendererSky.domElement);
+
+    rende = new THREE.WebGLRenderer();
+    rende.setSize(400, 400);
+    document.body.appendChild(rende.domElement);
+
+    
+    
     
     createScene();
     createCamera();
     createTerrain();
     createSkydome();
-
+    //createGround();
 
     createTrees(3);
     createGround();
