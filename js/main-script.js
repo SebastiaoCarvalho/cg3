@@ -9,11 +9,27 @@ var globalClock, deltaTime;
 
 var skydome;
 
-var directionalLight;
+var ovni;
+
+var directionalLight, spotLight;
+
+var leftArrowPressed, upArrowPressed, rightArrowPressed, downArrowPressed;
 
 var lightSwitch = false, alreadySwitchLight = false;
 
 const directionalLightIntensity = 30;
+
+/* Ovni dimensions */
+rBody = 2;
+r2Body = 7;
+
+rCockpit = 3;
+
+hCyl = 1;
+
+rSphere = 0.5;
+xSphere = 5;
+ySphere = 2;
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -72,6 +88,10 @@ function createLights() {
     directionalLight = new THREE.DirectionalLight(0xffffff, directionalLightIntensity);
     /* directionalLight.target.position.set(0, 10, 0); */
     scene.add(directionalLight);
+    spotLight = new THREE.SpotLight(0xffffff, 1);
+    spotLight.position.set(0, - hCyl - rBody), 0;
+    spotLight.castShadow = true;
+    scene.add(spotLight);
 }
 ////////////////////////
 /* CREATE OBJECT3D(S) */
@@ -201,6 +221,72 @@ function createMoon() {
     scene.add(moon);
 }
 
+function createOvni() {
+    "use strict";
+    ovni = new THREE.Object3D();
+    createOvniBody(ovni);
+    createOvniCockpit(ovni);
+    createOvniBottom(ovni);
+    createOvniSpheres(ovni);
+    ovni.position.set(0, 20, 0)
+    scene.add(ovni);
+}
+
+function createOvniBody(obj) {
+    "use strict";
+    const geometry = new THREE.SphereGeometry(1, 32, 32);
+    geometry.scale(r2Body, rBody, r2Body);
+    const material = new THREE.MeshStandardMaterial({
+        color: 0xffd45f,
+        wireframe: true,
+    });
+    const body = new THREE.Mesh(geometry, material);
+    body.position.set(0, 0, 0);
+    obj.add(body);
+}
+
+function createOvniCockpit(obj) {
+    "use strict";
+    const geometry = new THREE.SphereGeometry(rCockpit, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+    const material = new THREE.MeshBasicMaterial({
+        color : 0xffd45f,
+        wireframe: true
+    });
+    const cockpit = new THREE.Mesh(geometry, material);
+    cockpit.position.set(0, rCockpit, 0);
+    obj.add(cockpit);
+}
+
+function createOvniBottom(obj) {
+    "use strict";
+    const geometry = new THREE.CylinderGeometry(1.5, 1.5, 1, 32);
+    const material = new THREE.MeshBasicMaterial({
+        color : 0xffd45f,
+        wireframe: true
+    });
+    const bottom = new THREE.Mesh(geometry, material);
+    bottom.position.set(0, -rCockpit - hCyl/2, 0);
+    obj.add(bottom);
+}
+
+function createOvniSpheres(obj) {
+    createSphere(obj, new THREE.Vector3(xSphere, ySphere, 0));
+    createSphere(obj, new THREE.Vector3(- xSphere, ySphere, 0));
+    createSphere(obj, new THREE.Vector3(0, ySphere, xSphere));
+    createSphere(obj, new THREE.Vector3(0, ySphere, - xSphere));
+}
+
+function createSphere(obj, posVector) {
+    const geometry = new THREE.SphereGeometry(rSphere, 32, 32);
+    const material = new THREE.MeshBasicMaterial({
+        color : 0xff645f,
+        wireframe: false
+    });
+    const sphere = new THREE.Mesh(geometry, material);
+    sphere.position = posVector;
+    obj.add(sphere);
+}
+
 //////////////////////
 /* CHECK COLLISIONS */
 //////////////////////
@@ -222,10 +308,25 @@ function handleCollisions(){
 ////////////
 function update(){
     'use strict';
+    var velocityValue = 10;
     if (lightSwitch && ! alreadySwitchLight) {
         directionalLight.intensity = directionalLightIntensity - directionalLight.intensity;
         alreadySwitchLight = true;
     }
+    if (leftArrowPressed) moveX(ovni, -velocityValue, deltaTime);
+    if (rightArrowPressed) moveX(ovni, velocityValue, deltaTime);
+    if (upArrowPressed) moveZ(ovni, -velocityValue, deltaTime);
+    if (downArrowPressed) moveZ(ovni, velocityValue, deltaTime);
+}
+
+function moveX(object, value, deltaTime) {
+    const vec = new THREE.Vector3(value*deltaTime, 0, 0);
+    object.position.add(vec);
+}
+
+function moveZ(object, value, deltaTime) {
+    const vec = new THREE.Vector3(0, 0, value*deltaTime);
+    object.position.add(vec);
 }
 
 /////////////
@@ -258,6 +359,7 @@ function init() {
     createGround();
     createSkydome();
     createMoon();
+    createOvni();
 
     globalClock = new THREE.Clock(true);
     deltaTime = globalClock.getDelta();
@@ -296,7 +398,21 @@ function onKeyDown(e) {
     switch (e.keyCode) {
         case 68: // letter D/d
             lightSwitch = true;
+            break
+        case 37: // left arrow
+            leftArrowPressed = true;
+            break;
+        case 38: // up arrow
+            upArrowPressed = true;
+            break;
+        case 39: // right arrow
+            rightArrowPressed = true;
+            break;
+        case 40: // down arrow
+            downArrowPressed = true;
+            break;
     }
+
 }
 
 ///////////////////////
@@ -308,5 +424,18 @@ function onKeyUp(e){
         case 68: // letter D/d
             lightSwitch = false;
             alreadySwitchLight = false;
+            break
+        case 37: // left arrow 
+            leftArrowPressed = false;
+            break;
+        case 38: // up arrow
+            upArrowPressed = false;
+            break;
+        case 39: // right arrow
+            rightArrowPressed = false;
+            break;
+        case 40: // down arrow
+            downArrowPressed = false;
+            break;
     }
 }
