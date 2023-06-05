@@ -10,14 +10,17 @@ var globalClock, deltaTime;
 var skydome;
 
 var ovni;
+var spheres = [];
 
-var directionalLight, spotLight;
+var directionalLight, spotLight, pointLights = [];
 
 var leftArrowPressed, upArrowPressed, rightArrowPressed, downArrowPressed;
 
-var lightSwitch = false, alreadySwitchLight = false;
+var directionalLightSwitch = false, alreadySwitchDirectionalLight = false;
+var spotlightSwitch = false, alreadySwitchSpotlight = false;
 
 const directionalLightIntensity = 30;
+const spotLightIntensity = 30;
 
 /* Ovni dimensions */
 rBody = 2;
@@ -29,7 +32,7 @@ hCyl = 1;
 
 rSphere = 0.5;
 xSphere = 5;
-ySphere = 2;
+ySphere = - 2;
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -71,7 +74,7 @@ function createCamera(){
 
     
     tempCamera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    tempCamera.position.set(isometricDistance, isometricDistance, isometricDistance);
+    tempCamera.position.set(isometricDistance, 30, isometricDistance);
     tempCamera.lookAt(scene.position);
 
     mainCamera = tempCamera;
@@ -83,15 +86,26 @@ function createCamera(){
 /////////////////////
 function createLights() {
     "use strict";
+    // Ambient light
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
     scene.add(ambientLight);
+    // Directional light
     directionalLight = new THREE.DirectionalLight(0xffffff, directionalLightIntensity);
     /* directionalLight.target.position.set(0, 10, 0); */
     scene.add(directionalLight);
-    spotLight = new THREE.SpotLight(0xffffff, 1);
-    spotLight.position.set(0, - hCyl - rBody), 0;
-    spotLight.castShadow = true;
+    // Spotlight
+    spotLight = new THREE.SpotLight(0xffffff, spotLightIntensity, 0, Math.PI / 6, 0);
+    spotLight.position.set(0, ovni.position.y - hCyl - rBody), 0;
+    scene.add(spotLight.target);
     scene.add(spotLight);
+    // Point light
+    for (var sphere of spheres) {
+        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+        pointLight.position.set(ovni.position.x + sphere.position.x, ovni.position.y + sphere.position.y, ovni.position.z + sphere.position.z);
+        scene.add(pointLight);
+        pointLights.push(pointLight);
+    }
+ 
 }
 ////////////////////////
 /* CREATE OBJECT3D(S) */
@@ -216,7 +230,7 @@ function createMoon() {
         emissiveIntensity: 1.5,
     });
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 40, 0);
+    mesh.position.set(0, 50, 0);
     moon.add(mesh);
     scene.add(moon);
 }
@@ -228,7 +242,7 @@ function createOvni() {
     createOvniCockpit(ovni);
     createOvniBottom(ovni);
     createOvniSpheres(ovni);
-    ovni.position.set(0, 20, 0)
+    ovni.position.set(0, 30, 0)
     scene.add(ovni);
 }
 
@@ -270,20 +284,21 @@ function createOvniBottom(obj) {
 }
 
 function createOvniSpheres(obj) {
-    createSphere(obj, new THREE.Vector3(xSphere, ySphere, 0));
-    createSphere(obj, new THREE.Vector3(- xSphere, ySphere, 0));
-    createSphere(obj, new THREE.Vector3(0, ySphere, xSphere));
-    createSphere(obj, new THREE.Vector3(0, ySphere, - xSphere));
+    createSphere(obj, xSphere, ySphere, 0);
+    createSphere(obj, - xSphere, ySphere, 0);
+    createSphere(obj, 0, ySphere, xSphere);
+    createSphere(obj, 0, ySphere, - xSphere);
 }
 
-function createSphere(obj, posVector) {
+function createSphere(obj, x, y , z) {
     const geometry = new THREE.SphereGeometry(rSphere, 32, 32);
     const material = new THREE.MeshBasicMaterial({
         color : 0xff645f,
         wireframe: false
     });
     const sphere = new THREE.Mesh(geometry, material);
-    sphere.position = posVector;
+    sphere.position.set(x, y, z);
+    spheres.push(sphere);
     obj.add(sphere);
 }
 
@@ -308,15 +323,37 @@ function handleCollisions(){
 ////////////
 function update(){
     'use strict';
-    var velocityValue = 10;
-    if (lightSwitch && ! alreadySwitchLight) {
-        directionalLight.intensity = directionalLightIntensity - directionalLight.intensity;
-        alreadySwitchLight = true;
+    spotLight.target.position.set(ovni.position.x, 0, ovni.position.z);
+    for (var i = 0; i < pointLights.length; i++) {
+        pointLights[i].position.set(ovni.position.x + spheres[i].position.x, ovni.position.y + spheres[i].position.y, ovni.position.z + spheres[i].position.z);
+        console.log(spheres[i].position);
     }
-    if (leftArrowPressed) moveX(ovni, -velocityValue, deltaTime);
-    if (rightArrowPressed) moveX(ovni, velocityValue, deltaTime);
-    if (upArrowPressed) moveZ(ovni, -velocityValue, deltaTime);
-    if (downArrowPressed) moveZ(ovni, velocityValue, deltaTime);
+    var velocityValue = 10;
+    if (directionalLightSwitch && ! alreadySwitchDirectionalLight) {
+        directionalLight.intensity = directionalLightIntensity - directionalLight.intensity;
+        alreadySwitchDirectionalLight = true;
+    }
+    if (spotlightSwitch && ! alreadySwitchSpotlight) {
+        spotLight.intensity = spotLightIntensity - spotLight.intensity;
+        alreadySwitchSpotlight = true;
+        
+    }
+    if (leftArrowPressed) {
+        moveX(ovni, -velocityValue, deltaTime);
+        moveX(spotLight, -velocityValue, deltaTime);
+    }
+    if (rightArrowPressed) {
+        moveX(ovni, velocityValue, deltaTime);
+        moveX(spotLight, velocityValue, deltaTime);
+    }
+    if (upArrowPressed) {
+        moveZ(ovni, -velocityValue, deltaTime);
+        moveZ(spotLight, -velocityValue, deltaTime);
+    }
+    if (downArrowPressed) {
+        moveZ(ovni, velocityValue, deltaTime);
+        moveZ(spotLight, velocityValue, deltaTime);
+    }
 }
 
 function moveX(object, value, deltaTime) {
@@ -355,11 +392,11 @@ function init() {
     //createSkydome();
 
     createTrees(3);
-    createLights();
     createGround();
     createSkydome();
     createMoon();
     createOvni();
+    createLights();
 
     globalClock = new THREE.Clock(true);
     deltaTime = globalClock.getDelta();
@@ -397,8 +434,11 @@ function onKeyDown(e) {
     'use strict';
     switch (e.keyCode) {
         case 68: // letter D/d
-            lightSwitch = true;
-            break
+            directionalLightSwitch = true;
+            break;
+        case 83: // letter S/s
+            spotlightSwitch = true;
+            break;
         case 37: // left arrow
             leftArrowPressed = true;
             break;
@@ -422,9 +462,13 @@ function onKeyUp(e){
     'use strict';
     switch (e.keyCode) {
         case 68: // letter D/d
-            lightSwitch = false;
-            alreadySwitchLight = false;
-            break
+            directionalLightSwitch = false;
+            alreadySwitchDirectionalLight = false;
+            break;
+        case 83: // letter S/s
+            spotlightSwitch = false;
+            alreadySwitchSpotlight = false;
+            break;
         case 37: // left arrow 
             leftArrowPressed = false;
             break;
