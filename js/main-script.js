@@ -1,49 +1,54 @@
 //////////////////////
 /* GLOBAL VARIABLES */
 //////////////////////
-var mainCamera, cameras;
-var renderer, scene;
-var materials;
+/* Camera */
+var mainCamera;
 
+/* Renderers */
+var renderer, rendererSky, rendererGround; 
+
+/* Scene */
+var scene;
+
+/* Clock */
 var globalClock, deltaTime;
 
+/* Skydome */
 var skydome;
 
-var ovni;
-var spheres = [];
+/* Tree */
+var tree;
 
-var directionalLight, spotLight, pointLights = [];
+/* Colors for the textures */
+var colorCodes;
 
-var leftArrowPressed, upArrowPressed, rightArrowPressed, downArrowPressed;
-
-var directionalLightSwitch = false, alreadySwitchDirectionalLight = false;
-var spotlightSwitch = false, alreadySwitchSpotlight = false;
-
-var groundMaterial, rendererGround, rendererSky, colorCodes;
-
-var skydomeMaterial = new THREE.MeshStandardMaterial({
-    color: 0xff00ff,
-});
-
+/* Load heightmap */
 const map = new THREE.TextureLoader().load('pene.png');
 
+/* Ground material */
 var groundMaterial = new THREE.MeshStandardMaterial({
     color : 0xffffff,
     displacementMap : map,
     displacementScale : 50,
 }); 
 
-/* Ovni dimensions */
-rBody = 2;
-r2Body = 7;
+/* Skydome material */
+var skydomeMaterial = new THREE.MeshStandardMaterial({
+    color: 0xff00ff,
+});
 
-var ovni, moon;
-var spheres = [];
-
-var directionalLight, spotLight, pointLights = [];
-
+/* Arrow buttons */
 var leftArrowPressed = false, upArrowPressed = false, rightArrowPressed = false, downArrowPressed = false;
 
+/* Lights */
+var directionalLight, spotLight, pointLights = [];
+
+/* Lights intensity */
+const directionalLightIntensity = 1;
+const spotLightIntensity = 5;
+const pointLightIntensity = 1;
+
+/* Lights Switch */
 var directionalLightSwitch = false, alreadySwitchDirectionalLight = false;
 var pointLightSwitch = false, alreadySwitchPointLight = false;
 var spotlightSwitch = false, alreadySwitchSpotlight = false;
@@ -53,22 +58,25 @@ const spotLightIntensity = 5;
 const pointLightIntensity = 0.5;
 
 /* Ovni dimensions */
-rBody = 2;
-r2Body = 7;
+const rBody = 2;
+const r2Body = 7;
 
-rCockpit = 3;
+const rCockpit = 3;
 
-hCyl = 1;
+const hCyl = 1;
 
-rSphere = 0.5;
-xSphere = 5;
-ySphere = - 2;
-/* House */
+const rSphere = 0.5;
+const xSphere = 5;
+const ySphere = - 2;
+
+/* House dimensions */
 var houseL = 20, houseD = 10, houseH = 15;
 var roofH = 5;
 var doorL = 2, doorH = 4;
 var windowL = 2, windowH = 2; 
 
+/* Moon */
+var moon;
 /////////////////////
 /* CREATE SCENE(S) */
 /////////////////////
@@ -105,9 +113,7 @@ function createCamera(){
     tempCamera.position.set(-35, 30, 0);
     tempCamera.lookAt(0,20,0);
 
-
     mainCamera = tempCamera;
-    /* cameras.push(tempCamera); */
 }
 
 /////////////////////
@@ -300,7 +306,6 @@ function createSkyTexture() {
     
 function fillSceneSky(object) {
     "use strict";
-
     colorCodes = []
     colorCodes.push(0xffffff);
     for (let i = 0; i < 200; i++) {
