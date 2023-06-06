@@ -783,7 +783,7 @@ function init() {
     createMoon();
     createOvni();
     createLights();
-    createHouse(0, 0, 0);
+    createHouse(-5, 18, -20);
 
     globalClock = new THREE.Clock(true);
     deltaTime = globalClock.getDelta();
