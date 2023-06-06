@@ -51,7 +51,7 @@ var spotlightSwitch = false, alreadySwitchSpotlight = false;
 /* Lights intensity */
 const directionalLightIntensity = 0.3;
 const spotLightIntensity = 5;
-const pointLightIntensity = 0.5;
+const pointLightIntensity = 0.3;
 
 /* Ovni */
 var ovni;
@@ -135,14 +135,14 @@ function createLights() {
     directionalLight.target.position.set(1, 20, 2);
     scene.add(directionalLight);
     // Spotlight
-    spotLight = new THREE.SpotLight(0xffffff, spotLightIntensity, 0, Math.PI / 6, 0);
+    spotLight = new THREE.SpotLight(0xd4d400, spotLightIntensity, 0, Math.PI / 6, 0);
     spotLight.position.set(0, ovni.position.y - hCyl - rBody, 0);
     spotLight.castShadow = true;
     scene.add(spotLight.target);
     scene.add(spotLight);
     // Point light
     for (var sphere of spheres) {
-        const pointLight = new THREE.PointLight(0xffffff, pointLightIntensity, 100);
+        const pointLight = new THREE.PointLight(0xff645f, pointLightIntensity, 100);
         pointLight.position.set(ovni.position.x + sphere.position.x, ovni.position.y + sphere.position.y, ovni.position.z + sphere.position.z);
         scene.add(pointLight);
         pointLights.push(pointLight);
@@ -302,6 +302,8 @@ function createSkyTexture() {
     var texture = new THREE.CanvasTexture(rendererSky.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
     skydomeMaterial = new THREE.MeshStandardMaterial({
         map: texture,
+        emissive: 0x400040,
+        emissiveIntensity: 0.6,
         side: THREE.BackSide,
     });    
     createSkydome();
