@@ -130,14 +130,14 @@ function createLights() {
     // Directional light
     directionalLight = new THREE.DirectionalLight(0xffffff, directionalLightIntensity);
     directionalLight.position.set(moon.position.x, moon.position.y - 10, moon.position.z);
-    console.log(directionalLight.position);
-    console.log(moon.position);
+    directionalLight.castShadow = true;
     scene.add(directionalLight.target);
     directionalLight.target.position.set(1, 20, 2);
     scene.add(directionalLight);
     // Spotlight
     spotLight = new THREE.SpotLight(0xffffff, spotLightIntensity, 0, Math.PI / 6, 0);
     spotLight.position.set(0, ovni.position.y - hCyl - rBody, 0);
+    spotLight.castShadow = true;
     scene.add(spotLight.target);
     scene.add(spotLight);
     // Point light
@@ -724,20 +724,20 @@ function update(){
     }   
     
     if (upArrowPressed) {
-        moveZ(ovni, -velocityValue, deltaTime);
-        moveZ(spotLight, -velocityValue, deltaTime);
-    }
-    if (leftArrowPressed) {
-        moveX(ovni, -velocityValue, deltaTime);
-        moveX(spotLight, -velocityValue, deltaTime);
-    }
-    if (rightArrowPressed) {
         moveX(ovni, velocityValue, deltaTime);
         moveX(spotLight, velocityValue, deltaTime);
     }
-    if (downArrowPressed) {
+    if (leftArrowPressed) {
+        moveZ(ovni, -velocityValue, deltaTime);
+        moveZ(spotLight, -velocityValue, deltaTime);
+    }
+    if (rightArrowPressed) {
         moveZ(ovni, velocityValue, deltaTime);
         moveZ(spotLight, velocityValue, deltaTime);
+    }
+    if (downArrowPressed) {
+        moveX(ovni, -velocityValue, deltaTime);
+        moveX(spotLight, -velocityValue, deltaTime);
     }
 
     ovni.rotation.y += 0.01;
