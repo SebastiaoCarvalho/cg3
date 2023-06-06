@@ -14,13 +14,15 @@ var spheres = [];
 
 var directionalLight, spotLight, pointLights = [];
 
-var leftArrowPressed, upArrowPressed, rightArrowPressed, downArrowPressed;
+var leftArrowPressed = false, upArrowPressed = false, rightArrowPressed = false, downArrowPressed = false;
 
 var directionalLightSwitch = false, alreadySwitchDirectionalLight = false;
+var pointLightSwitch = false, alreadySwitchPointLight = false;
 var spotlightSwitch = false, alreadySwitchSpotlight = false;
 
 const directionalLightIntensity = 30;
 const spotLightIntensity = 30;
+const pointLightIntensity = 1;
 
 /* Ovni dimensions */
 rBody = 2;
@@ -323,10 +325,11 @@ function handleCollisions(){
 ////////////
 function update(){
     'use strict';
+
     spotLight.target.position.set(ovni.position.x, 0, ovni.position.z);
     for (var i = 0; i < pointLights.length; i++) {
         pointLights[i].position.set(ovni.position.x + spheres[i].position.x, ovni.position.y + spheres[i].position.y, ovni.position.z + spheres[i].position.z);
-        console.log(spheres[i].position);
+        /* console.log(spheres[i].position); */
     }
     var velocityValue = 10;
     if (directionalLightSwitch && ! alreadySwitchDirectionalLight) {
@@ -338,6 +341,13 @@ function update(){
         alreadySwitchSpotlight = true;
         
     }
+    if (pointLightSwitch && ! alreadySwitchPointLight) {
+        for (var pointLight of pointLights) {
+            pointLight.intensity = pointLightIntensity - pointLight.intensity;
+        }
+        alreadySwitchPointLight = true;
+    }
+    console.log(leftArrowPressed, upArrowPressed, rightArrowPressed, downArrowPressed);
     if (leftArrowPressed) {
         moveX(ovni, -velocityValue, deltaTime);
         moveX(spotLight, -velocityValue, deltaTime);
@@ -354,6 +364,7 @@ function update(){
         moveZ(ovni, velocityValue, deltaTime);
         moveZ(spotLight, velocityValue, deltaTime);
     }
+    ovni.rotation.y += 0.01;
 }
 
 function moveX(object, value, deltaTime) {
@@ -439,6 +450,9 @@ function onKeyDown(e) {
         case 83: // letter S/s
             spotlightSwitch = true;
             break;
+        case 80: // letter P/p
+            pointLightSwitch = true;
+            break;
         case 37: // left arrow
             leftArrowPressed = true;
             break;
@@ -468,6 +482,10 @@ function onKeyUp(e){
         case 83: // letter S/s
             spotlightSwitch = false;
             alreadySwitchSpotlight = false;
+            break;
+        case 80: // letter P/p
+            pointLightSwitch = false;
+            alreadySwitchPointLight = false;
             break;
         case 37: // left arrow 
             leftArrowPressed = false;
