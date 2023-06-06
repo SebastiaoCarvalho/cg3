@@ -6,10 +6,10 @@
 var mainCamera;
 
 /* Renderers */
-var renderer, rendererSky, rendererGround; 
+var renderer, rendererSecondary; 
 
 /* Scene */
-var scene;
+var scene, sceneSecondary;
 
 /* Clock */
 var globalClock, deltaTime;
@@ -343,7 +343,7 @@ function createGroundTexture() {
     cameraGround.lookAt(new THREE.Vector3(0, 0, 0));
     
     var object = new THREE.Object3D();
-    var sceneGround = new THREE.Scene();
+    sceneSecondary = new THREE.Scene();
     var geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
     var material = new THREE.MeshBasicMaterial({
         color: 0x90ee90,
@@ -352,11 +352,12 @@ function createGroundTexture() {
     var mesh = new THREE.Mesh(geometry, material);
     object.add(mesh);
     fillSceneGround(object);
-    sceneGround.add(object);
+    sceneSecondary.add(object);
     
-    rendererGround.render(sceneGround, cameraGround);
+    rendererSecondary.clear();
+    rendererSecondary.render(sceneSecondary, cameraGround);
 
-    var texture = new THREE.CanvasTexture(rendererGround.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
+    var texture = new THREE.CanvasTexture(rendererSecondary.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
 
     groundMaterial = new THREE.MeshPhongMaterial({
         map : texture,
@@ -373,7 +374,7 @@ function createSkyTexture() {
     cameraSky.lookAt(new THREE.Vector3(0, 0, 0));
 
     var object = new THREE.Object3D();
-    var sceneSky = new THREE.Scene();
+    sceneSecondary = new THREE.Scene();
     var geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
     
     let a = { r: 0.00, g: 0.0467, b: 0.280 } // Dark blue
@@ -392,9 +393,10 @@ function createSkyTexture() {
     var mesh = new THREE.Mesh(geometry, material);
     object.add(mesh);
     fillSceneSky(object);
-    sceneSky.add(object);
+    sceneSecondary.add(object);
     
-    rendererSky.render(sceneSky, cameraSky);
+    rendererSecondary.clear();
+    rendererSecondary.render(sceneSecondary, cameraSky);
 
     var texture = new THREE.CanvasTexture(rendererSky.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
     skydomeMaterial = new THREE.MeshPhongMaterial({
@@ -837,18 +839,11 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    rendererGround = new THREE.WebGLRenderer({
+    rendererSecondary = new THREE.WebGLRenderer({
         antialias: true,
     });
-    rendererGround.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(rendererGround.domElement);
-
-    rendererSky = new THREE.WebGLRenderer({
-        antialias: true,
-    });
-    rendererSky.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(rendererSky.domElement);
-
+    rendererSecondary.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(rendererSecondary.domElement);
 
     createScene();
     createCamera();
