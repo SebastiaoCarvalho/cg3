@@ -414,9 +414,9 @@ function createSphere(obj, x, y , z) {
     obj.add(sphere);
 }
 
-var houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-var roofMaterial = new THREE.MeshBasicMaterial({ color: 0xff8000 });
-var doorAndWindowMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+var houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+var roofMaterial = new THREE.MeshBasicMaterial({ color: 0xff8000, side: THREE.DoubleSide });
+var doorAndWindowMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
 
 function createHouse(x, y, z) {
     "use strict";
