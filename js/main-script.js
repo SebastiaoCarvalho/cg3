@@ -37,7 +37,7 @@ var groundMaterial = new THREE.MeshStandardMaterial({
 rBody = 2;
 r2Body = 7;
 
-var ovni;
+var ovni, moon;
 var spheres = [];
 
 var directionalLight, spotLight, pointLights = [];
@@ -48,9 +48,9 @@ var directionalLightSwitch = false, alreadySwitchDirectionalLight = false;
 var pointLightSwitch = false, alreadySwitchPointLight = false;
 var spotlightSwitch = false, alreadySwitchSpotlight = false;
 
-const directionalLightIntensity = 1;
+const directionalLightIntensity = 0.3;
 const spotLightIntensity = 5;
-const pointLightIntensity = 1;
+const pointLightIntensity = 0.5;
 
 /* Ovni dimensions */
 rBody = 2;
@@ -116,20 +116,24 @@ function createCamera(){
 function createLights() {
     "use strict";
     // Ambient light
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
     // Directional light
     directionalLight = new THREE.DirectionalLight(0xffffff, directionalLightIntensity);
-    /* directionalLight.target.position.set(0, 10, 0); */
+    directionalLight.position.set(moon.position.x, moon.position.y - 10, moon.position.z);
+    console.log(directionalLight.position);
+    console.log(moon.position);
+    scene.add(directionalLight.target);
+    directionalLight.target.position.set(1, 20, 2);
     scene.add(directionalLight);
     // Spotlight
     spotLight = new THREE.SpotLight(0xffffff, spotLightIntensity, 0, Math.PI / 6, 0);
-    spotLight.position.set(0, ovni.position.y - hCyl - rBody), 0;
+    spotLight.position.set(0, ovni.position.y - hCyl - rBody, 0);
     scene.add(spotLight.target);
     scene.add(spotLight);
     // Point light
     for (var sphere of spheres) {
-        const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+        const pointLight = new THREE.PointLight(0xffffff, pointLightIntensity, 100);
         pointLight.position.set(ovni.position.x + sphere.position.x, ovni.position.y + sphere.position.y, ovni.position.z + sphere.position.z);
         scene.add(pointLight);
         pointLights.push(pointLight);
@@ -336,7 +340,7 @@ function createGround() {
 
 function createMoon() {
     "use strict";
-    const moon = new THREE.Object3D();
+    moon = new THREE.Object3D();
     
     const geometry = new THREE.SphereGeometry(10, 32, 32);
     const material = new THREE.MeshStandardMaterial({
@@ -345,8 +349,8 @@ function createMoon() {
         emissiveIntensity: 1.5,
     });
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 50, 0);
     moon.add(mesh);
+    moon.position.set(0, 50, 0);
     scene.add(moon);
 }
 
