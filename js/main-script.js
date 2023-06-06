@@ -799,6 +799,7 @@ function init() {
 
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('resize', onResize);
 }
 
 /////////////////////
@@ -820,7 +821,13 @@ function animate() {
 ////////////////////////////
 function onResize() { 
     'use strict';
+    
+    renderer.setSize(window.innerWidth, window.innerHeight);
 
+    if (window.innerHeight > 0 && window.innerWidth > 0) {
+        mainCamera.aspect = window.innerWidth / window.innerHeight;
+        mainCamera.updateProjectionMatrix();
+    }
 }
 
 ///////////////////////
