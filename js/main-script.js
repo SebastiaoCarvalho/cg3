@@ -43,19 +43,21 @@ var leftArrowPressed = false, upArrowPressed = false, rightArrowPressed = false,
 /* Lights */
 var directionalLight, spotLight, pointLights = [];
 
-/* Lights intensity */
-const directionalLightIntensity = 1;
-const spotLightIntensity = 5;
-const pointLightIntensity = 1;
-
 /* Lights Switch */
 var directionalLightSwitch = false, alreadySwitchDirectionalLight = false;
 var pointLightSwitch = false, alreadySwitchPointLight = false;
 var spotlightSwitch = false, alreadySwitchSpotlight = false;
 
+/* Lights intensity */
 const directionalLightIntensity = 0.3;
 const spotLightIntensity = 5;
 const pointLightIntensity = 0.5;
+
+/* Ovni */
+var ovni;
+
+/* Ovni spheres */
+var spheres = []
 
 /* Ovni dimensions */
 const rBody = 2;
@@ -77,6 +79,7 @@ var windowL = 2, windowH = 2;
 
 /* Moon */
 var moon;
+
 /////////////////////
 /* CREATE SCENE(S) */
 /////////////////////
