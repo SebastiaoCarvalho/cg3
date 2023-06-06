@@ -245,12 +245,17 @@ function getRandomNumber(min, max) {
 
 function createTrees(numberOfTrees) {
     var posVectors = [];
-    for (let i = 0; i < numberOfTrees; i++) {
+    while (numberOfTrees > 0) {
         const dimension = new THREE.Vector3(1, 1, getRandomNumber(7,12));
         const v = new THREE.Vector3(getRandomNumber(-40,20), 20, getRandomNumber(-40,40));
-        if (posVectors.includes(v)) continue;
+        if (posVectors.includes(v)) 
+            continue;
+        if ((-5-houseL <= v.x  && v.x <= -5+houseL) && (-20-houseD <= v.z && v.z <= -20+houseD)) {
+            continue;
+        }
         posVectors.push(v);
         createTree(v, dimension);
+        numberOfTrees -= 1;
     }
 }
 
@@ -854,7 +859,7 @@ function init() {
     createMoon();
     createOvni();
     createLights();
-    createHouse(-5, 18, -20);
+    createHouse(-5, 20, -20);
 
     globalClock = new THREE.Clock(true);
     deltaTime = globalClock.getDelta();
