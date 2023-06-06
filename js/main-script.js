@@ -1,30 +1,44 @@
 //////////////////////
 /* GLOBAL VARIABLES */
 //////////////////////
-var mainCamera, cameras, camera;
-var renderer, rendererSky, rendererGround, rende;
-var geometry, tree;
-var scene, sceneSky, sceneGround, cameraGround;
-var material, mesh;
-var globalClock, deltaTime,robot;
-var number1Pressed = false, number2Pressed = false;
-var colorCodes, skyCreated, groundCreated;
-var skydome, object;
-var skyMaterial;
+var mainCamera, cameras;
+var renderer, scene;
+var materials;
+
+var globalClock, deltaTime;
+
+var skydome;
+
+var ovni;
+var spheres = [];
+
+var directionalLight, spotLight, pointLights = [];
+
+var leftArrowPressed, upArrowPressed, rightArrowPressed, downArrowPressed;
+
+var directionalLightSwitch = false, alreadySwitchDirectionalLight = false;
+var spotlightSwitch = false, alreadySwitchSpotlight = false;
+
+const directionalLightIntensity = 0;
+const spotLightIntensity = 30;
+
+var groundMaterial, rendererGround, rendererSky, colorCodes;
+
 var skydomeMaterial = new THREE.MeshStandardMaterial({
     color: 0xff00ff,
-    side: THREE.Backside,
 });
 
 const map = new THREE.TextureLoader().load('pene.png');
 
 var groundMaterial = new THREE.MeshStandardMaterial({
-    //color : 0xffffff,
-    //wireframe : true,
+    color : 0xffffff,
     displacementMap : map,
     displacementScale : 50,
 }); 
 
+/* Ovni dimensions */
+rBody = 2;
+r2Body = 7;
 
 var ovni;
 var spheres = [];
@@ -62,7 +76,8 @@ function createScene(){
     const backgroundColor = new THREE.Color("rgb(0, 0, 0)");
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color( backgroundColor );
+    scene.background = backgroundColor;
+
 }
 
 //////////////////////
@@ -74,12 +89,10 @@ function createCamera(){
     const right = 140;
     const top = 75;
     const down = -75;
-    const fov = 70;
+    const fov = 90;
     const near = 1;
     const far = 1000;
-    const distance = 40;
-    const isometricDistance = 50;
-    var tempCamera = new THREE.OrthographicCamera(
+    tempCamera = new THREE.OrthographicCamera(
         left,
         right,
         top,
@@ -87,14 +100,10 @@ function createCamera(){
         near,
         far
     );
-    //tempCamera.position.set(distance, 0, 0);
-    //tempCamera.position.set(0, distance, 0);
-    //tempCamera.lookAt(scene.position);
-
-    
     tempCamera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    tempCamera.position.set(-40, 30, 0);
-    tempCamera.lookAt(10,10,10);
+    tempCamera.position.set(-35, 30, 0);
+    tempCamera.lookAt(0,20,0);
+
 
     mainCamera = tempCamera;
     /* cameras.push(tempCamera); */
@@ -134,45 +143,38 @@ function getRandomNumber(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-
 function createTrees(numberOfTrees) {
-    "use strict";
-
-    
+    var posVectors = [];
     for (let i = 0; i < numberOfTrees; i++) {
         const dimension = new THREE.Vector3(1, 1, getRandomNumber(7,12));
-        const v = new THREE.Vector3(0, 20, i*30);
+        const v = new THREE.Vector3(getRandomNumber(-40,20), 20, getRandomNumber(-40,40));
+        if (posVectors.includes(v)) continue;
+        posVectors.push(v);
         createTree(v, dimension);
     }
 }
 
 function createTree(posVector, dimensionVector) {
-    "use strict";
-
     tree = new THREE.Object3D();
 
-    const i = getRandomNumber(Math.PI/30, Math.PI/16);
+    const i = getRandomNumber(Math.PI/20, Math.PI/16);
     addBranch(tree, posVector, dimensionVector, new THREE.Vector3(i,0,0));
-    
-    const branchPos = new THREE.Vector3(posVector.x+2,posVector.y+2,posVector.z-1); 
+
+    const branchPos = new THREE.Vector3(posVector.x+1,posVector.y+2,posVector.z-1); 
     const branchDim = new THREE.Vector3(dimensionVector.x/3, dimensionVector.y/3, dimensionVector.z/2);
-    addBranch(tree, branchPos, branchDim, new THREE.Vector3(0, 0, -i*3)); 
+    addBranch(tree, branchPos, branchDim, new THREE.Vector3(0, 0, -i*2)); 
     
     const bbox = new THREE.Box3().setFromObject(tree);
     const topPos = new THREE.Vector3(bbox.max.x, bbox.max.y, bbox.max.z)
     addTopOnTree(tree, topPos, dimensionVector);
-    
+
     scene.add(tree);   
 }
 
-
 function addBranch(obj, posVector, dimensionVector, rotationVector) {
-    "use strict";
-
     const geometry = new THREE.CylinderGeometry(dimensionVector.x,dimensionVector.y,dimensionVector.z,32);
     const material = new THREE.MeshBasicMaterial({
         color: 0x884802,
-        //wireframe: true,
     });
     const mesh = new THREE.Mesh(geometry, material);
 
@@ -182,50 +184,55 @@ function addBranch(obj, posVector, dimensionVector, rotationVector) {
     mesh.position.set(posVector.x,posVector.y,posVector.z);
 
     var bbox = new THREE.Box3().setFromObject(mesh);
-    let maxPos = new THREE.Vector3(bbox.max.x, bbox.max.y, bbox.max.z-3);
-    
+    let maxPos = new THREE.Vector3(bbox.max.x, bbox.max.y, bbox.max.z);
+
     addTopPartOnBranch(obj, maxPos, dimensionVector, rotationVector);
     obj.add(mesh);
 }
 
 function addTopPartOnBranch(obj, posVector, dimensionVector) {
-    "use strict";
-
     const ellipsoidGeometry = new THREE.SphereGeometry(0.5, 32, 16);
     const material = new THREE.MeshBasicMaterial({
         color: 0x006400,
-        //wireframe: true,
     });
     ellipsoidGeometry.scale(dimensionVector.x*3.5, dimensionVector.y*1.25, dimensionVector.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
 
-    ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z+2);
+    ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z);
     obj.add(ellipsoidMesh);
 }
 
 function addTopOnTree(obj, posVector, dimensionVector) {
-    "use strict";
-
     const ellipsoidGeometry = new THREE.SphereGeometry(0.5, 32, 16);
     const material = new THREE.MeshBasicMaterial({
         color: 0x006400,
-        //wireframe: true,
-    }); THREE.RepeatWrapping, THREE.RepeatWrapping
+    });
     ellipsoidGeometry.scale(dimensionVector.x*1.75, dimensionVector.y*1.5, dimensionVector.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
     
-    ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z-6);
+    ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z-5);
     obj.add(ellipsoidMesh);
 }
 
-function createGround() {
+function createSkydome() {
     "use strict";
-    cameraGround = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
+    skydome = new THREE.Object3D();
+    skydome.position.set(0, 0, 0);
+    const geometry = new THREE.SphereGeometry(50, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+    const mesh = new THREE.Mesh(geometry, skydomeMaterial);
+    mesh.position.set(0, 0, 0);
+    skydome.add(mesh);
+    scene.add(skydome);
+}
+
+function createGroundTexture() {
+    "use strict";
+    const cameraGround = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
     cameraGround.position.set(0, 0, 10);
     cameraGround.lookAt(new THREE.Vector3(0, 0, 0));
     
-    object = new THREE.Object3D();
-    sceneGround = new THREE.Scene();
+    var object = new THREE.Object3D();
+    var sceneGround = new THREE.Scene();
     var geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
     var material = new THREE.MeshBasicMaterial({
         color: 0x90ee90,
@@ -245,17 +252,17 @@ function createGround() {
         displacementMap : map,
         displacementScale : 50,
     }); 
-    createTerrain();
+    createGround();
 }
 
-function createSky() {
+function createSkyTexture() {
     "use strict";
     const cameraSky = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
     cameraSky.position.set(0, 0, 10);
     cameraSky.lookAt(new THREE.Vector3(0, 0, 0));
 
-    object = new THREE.Object3D();
-    sceneSky = new THREE.Scene();
+    var object = new THREE.Object3D();
+    var sceneSky = new THREE.Scene();
     var geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
     
     let a = { r: 0.00, g: 0.0467, b: 0.280 } // Dark blue
@@ -291,11 +298,11 @@ function fillSceneSky(object) {
 
     colorCodes = []
     colorCodes.push(0xffffff);
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 200; i++) {
         addCircle(getRandomNumber(-2,2), getRandomNumber(-2,2), 0, object);
     }
 }
-    
+
 function fillSceneGround(object) {
     "use strict";
     colorCodes = [];
@@ -303,59 +310,27 @@ function fillSceneGround(object) {
     colorCodes.push(0xadd8e6);
     colorCodes.push(0xb19cd9);
     colorCodes.push(0xffff00);
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 200; i++) {
         addCircle(getRandomNumber(-2,2), getRandomNumber(-2,2), i, object);
     }
 }
 
 function addCircle(x, y, i, object) {
     "use strict";
-    var i = Math.floor(i/25);
-    geometry = new THREE.CircleGeometry(0.03, 32); 
-    material = new THREE.MeshBasicMaterial( { color: colorCodes[i] } ); 
+    var i = Math.floor(i/50);
+    var geometry = new THREE.CircleGeometry(0.015, 32); 
+    var material = new THREE.MeshBasicMaterial( { color: colorCodes[i] } ); 
     const circle = new THREE.Mesh(geometry, material); 
     circle.position.set(x,y,0);
     object.add(circle);
 }
 
-function createSkydome() {
+function createGround() {
     "use strict";
-    skydome = new THREE.Object3D();
-    skydome.position.set(0, 0, 0);
-    const geometry = new THREE.SphereGeometry( 50, 32, 32, 0, Math.PI * 2, 0, Math.PI /2.5 );
-    const mesh = new THREE.Mesh(geometry, skydomeMaterial);
-    mesh.position.set(0, 0, 0);
-    skydome.add(mesh);
-    scene.add(skydome);
-}
-
-function createTerrain() {
-    "use strict";
-    
     const groundGeo = new THREE.PlaneGeometry(100, 100, 100, 100);
     const ground = new THREE.Mesh(groundGeo, groundMaterial);
     ground.rotation.x = - Math.PI / 2;
     scene.add(ground);
-}
-
-function createSquare() {
-    "use strict";
-    
-    cameraGround = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
-    cameraGround.position.set(0, 0, 10);
-    cameraGround.lookAt(new THREE.Vector3(0, 0, 0));
-    
-    const geometry = new THREE.SphereGeometry(10, 32, 32);
-    const material = new THREE.MeshStandardMaterial({
-        color: 0xffd45f,
-        wireframe: true,
-        emissive: 0xffd45f,
-        emissiveIntensity: 1.5,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 50, 0);
-    moon.add(mesh);
-    scene.add(moon);
 }
 
 function createMoon() {
@@ -365,7 +340,6 @@ function createMoon() {
     const geometry = new THREE.SphereGeometry(10, 32, 32);
     const material = new THREE.MeshStandardMaterial({
         color: 0xffd45f,
-        //wireframe: true,
         emissive: 0xffd45f,
         emissiveIntensity: 1.5,
     });
@@ -447,7 +421,7 @@ function createSphere(obj, x, y , z) {
 //////////////////////
 function checkCollisions(){
     'use strict';
-    
+
 }
 
 ///////////////////////
@@ -455,17 +429,35 @@ function checkCollisions(){
 ///////////////////////
 function handleCollisions(){
     'use strict';
-    
+
 }
 
 ////////////
 /* UPDATE */
 ////////////
-function update() {
+function update(){
     'use strict';
-    
-    if (number1Pressed) {
-        createGround();
+    spotLight.target.position.set(ovni.position.x, 0, ovni.position.z);
+    for (var i = 0; i < pointLights.length; i++) {
+        pointLights[i].position.set(ovni.position.x + spheres[i].position.x, ovni.position.y + spheres[i].position.y, ovni.position.z + spheres[i].position.z);
+    }
+    var velocityValue = 10;
+    if (directionalLightSwitch && ! alreadySwitchDirectionalLight) {
+        directionalLight.intensity = directionalLightIntensity - directionalLight.intensity;
+        alreadySwitchDirectionalLight = true;
+    }
+    if (spotlightSwitch && ! alreadySwitchSpotlight) {
+        spotLight.intensity = spotLightIntensity - spotLight.intensity;
+        alreadySwitchSpotlight = true;
+        
+    }
+    if (leftArrowPressed) {
+        moveX(ovni, -velocityValue, deltaTime);
+        moveX(spotLight, -velocityValue, deltaTime);
+    }
+    if (rightArrowPressed) {
+        moveX(ovni, velocityValue, deltaTime);
+        moveX(spotLight, velocityValue, deltaTime);
     }
     else if (number2Pressed) {
         createSky();
@@ -521,13 +513,22 @@ function moveZ(object, value, deltaTime) {
     object.position.add(vec);
 }
 
+function moveX(object, value, deltaTime) {
+    const vec = new THREE.Vector3(value*deltaTime, 0, 0);
+    object.position.add(vec);
+}
+
+function moveZ(object, value, deltaTime) {
+    const vec = new THREE.Vector3(0, 0, value*deltaTime);
+    object.position.add(vec);
+}
+
 /////////////
 /* DISPLAY */
 /////////////
 function render() {
     'use strict';
     renderer.render(scene, mainCamera);
-    //rendererGround.render(sceneGround, cameraGround);
 }
 
 ////////////////////////////////
@@ -535,32 +536,30 @@ function render() {
 ////////////////////////////////
 function init() {
     'use strict';
-    renderer = new THREE.WebGLRenderer();
+
+    renderer = new THREE.WebGLRenderer({
+        antialias: true,
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
-    
-    rendererGround = new THREE.WebGLRenderer();
+
+    rendererGround = new THREE.WebGLRenderer({
+        antialias: true,
+    });
     rendererGround.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(rendererGround.domElement);
 
-    rendererSky = new THREE.WebGLRenderer();
+    rendererSky = new THREE.WebGLRenderer({
+        antialias: true,
+    });
     rendererSky.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(rendererSky.domElement);
 
-    rende = new THREE.WebGLRenderer();
-    rende.setSize(400, 400);
-    document.body.appendChild(rende.domElement);
 
-    
-    
-    
     createScene();
     createCamera();
-    createTerrain();
-    createSkydome();
-    //createGround();
 
-    createTrees(3);
+    createTrees(7);
     createGround();
     createSkydome();
     createMoon();
@@ -593,12 +592,6 @@ function animate() {
 ////////////////////////////
 function onResize() { 
     'use strict';
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    if (window.innerHeight > 0 && window.innerWidth > 0) {
-        mainCamera.aspect = window.innerWidth / window.innerHeight;
-        mainCamera.updateProjectionMatrix();
-    }
 
 }
 
@@ -609,9 +602,11 @@ function onKeyDown(e) {
     'use strict';
     switch (e.keyCode) {
         case 49:
-            number1Pressed = true;
+            createGroundTexture();
+            break;
         case 50: 
-            number2Pressed = true;
+            createSkyTexture();
+            break;
         case 68: // letter D/d
             directionalLightSwitch = true;
             break;
@@ -643,10 +638,6 @@ function onKeyDown(e) {
 function onKeyUp(e){
     'use strict';
     switch (e.keyCode) {
-        case 49:
-            number1Pressed = false;
-        case 50: 
-            number2Pressed = false;
         case 68: // letter D/d
             directionalLightSwitch = false;
             alreadySwitchDirectionalLight = false;
