@@ -63,6 +63,11 @@ hCyl = 1;
 rSphere = 0.5;
 xSphere = 5;
 ySphere = - 2;
+/* House */
+var houseL = 20, houseD = 10, houseH = 15;
+var roofH = 5;
+var doorL = 2, doorH = 4;
+var windowL = 2, windowH = 2; 
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -409,6 +414,261 @@ function createSphere(obj, x, y , z) {
     obj.add(sphere);
 }
 
+var houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+var roofMaterial = new THREE.MeshBasicMaterial({ color: 0xff8000, side: THREE.DoubleSide });
+var doorAndWindowMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
+
+function createHouse(x, y, z) {
+    "use strict";
+
+    //Define vertices for the house walls
+    const spaceBetween = (houseL - doorL - 2*windowL)/4;
+    const houseVertices = [
+        //north wall
+        -houseL/2, -houseH/2, -houseD/2, // Vertex 0
+        -houseL/2, -houseH/2, houseD/2,  // Vertex 1
+        -houseL/2, houseH/2, -houseD/2,  // Vertex 2
+        -houseL/2, houseH/2, houseD/2,   // Vertex 3
+        //east wall - door
+        houseL/2 - spaceBetween, houseH/2 - 3, houseD/2,                    // Vertex 4
+        houseL/2 - spaceBetween, houseH/2 - 3 - doorH, houseD/2,            // Vertex 5
+        houseL/2 - spaceBetween - doorL, houseH/2 - 3, houseD/2,            // Vertex 6
+        houseL/2 - spaceBetween - doorL, houseH/2 - 3 - doorH, houseD/2,    // Vertex 7
+        //east wall - window1
+        houseL/2 - spaceBetween - doorL - spaceBetween, houseH/2 - 3, houseD/2,                         // Vertex 8
+        houseL/2 - spaceBetween - doorL - spaceBetween, houseH/2 - 3 - windowH, houseD/2,               // Vertex 9
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL, houseH/2 - 3, houseD/2,               // Vertex 10
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL, houseH/2 - 3 - windowH, houseD/2,     // Vertex 11
+        //east wall - window2
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween, houseH/2 - 3, houseD/2,                         // Vertex 12
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween, houseH/2 - 3 - windowH, houseD/2,               // Vertex 13
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween - windowL, houseH/2 - 3, houseD/2,               // Vertex 14
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween - windowL, houseH/2 - 3 - windowH, houseD/2,     // Vertex 15
+        //south wall
+        houseL/2, -houseH/2, -houseD/2, // Vertex 16
+        houseL/2, -houseH/2, houseD/2,  // Vertex 17
+        houseL/2, houseH/2, -houseD/2,  // Vertex 18
+        houseL/2, houseH/2, houseD/2,   // Vertex 19
+
+        //east wall - auxiliary vertices
+        houseL/2 - spaceBetween, -houseH/2, houseD/2,                       // Vertex 20
+        houseL/2 - spaceBetween - doorL, -houseH/2, houseD/2,               // Vertex 21
+        -houseL/2, houseH/2 - 3 - windowH, houseD/2,                        // Vertex 22
+        -houseL/2, houseH/2 - 3, houseD/2,                                  // Vertex 23
+        houseL/2 - spaceBetween, houseH/2, houseD/2,                        // Vertex 24
+        houseL/2 - spaceBetween - doorL, houseH/2 - 3 - windowH, houseD/2, // Vertex 25
+
+        //roof points
+        -houseL/2, houseH/2 + roofH, 0,  // Vertex 26
+        houseL/2, houseH/2 + roofH, 0,   // Vertex 27
+
+    ];
+
+    // Define faces of north wall
+    const northWallIndices = [
+        1, 0, 2,
+        1, 2, 3,
+    ];
+
+    // Define faces of south wall
+    const southWallIndices = [
+        17, 16, 18,
+        18, 19, 17,
+    ];
+
+    // Define faces of cover
+    const coverIndices = [
+        19, 18, 2,
+        2, 3, 19,
+    ];
+
+    // Define faces of floor
+    const floorIndices = [
+        17, 16, 0,
+        0, 1, 17,
+    ];
+
+    // Define faces of west wall
+    const westWallIndices = [
+        0, 16, 18,
+        18, 2, 0,
+    ];
+
+    // Define faces of east wall
+    const eastWallIndices = [
+        17, 19, 24,
+        24, 20, 17,
+        20, 5, 7,
+        7, 21, 20,
+        21, 25, 22,
+        22, 1, 21,
+        25, 6, 8,
+        8, 9, 25,
+        11, 10, 12,
+        12, 13, 11,
+        15, 14, 23,
+        23, 22, 15,
+        4, 24, 3,
+        3, 23, 4,
+    ];
+
+    // Define faces of door
+    const doorIndices = [
+        7, 5, 4,
+        4, 6, 7,
+    ];
+
+    // Define faces of window1
+    const window1Indices = [
+        11, 9, 8,
+        8, 10, 11,
+    ];
+
+    // Define faces of window2
+    const window2Indices = [
+        15, 13, 12,
+        12, 14, 15,
+    ];
+
+    // Define faces of roof
+    const roofIndices = [
+        26, 2, 18,
+        18, 27, 26,
+        3, 19, 27,
+        27, 26, 3,
+    ];
+
+    const roofSide1Indices = [
+        26, 3, 2,
+    ];
+
+    const roofSide2Indices = [
+        27, 19, 18,
+    ];
+
+    // Create geometry for the north wall
+    const northWallGeometry = new THREE.BufferGeometry();
+    northWallGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    northWallGeometry.setIndex(northWallIndices);
+
+    // Create mesh for the north wall
+    const northWallMesh = new THREE.Mesh(northWallGeometry, houseMaterial);
+
+    // Create geometry for the south wall
+    const southWallGeometry = new THREE.BufferGeometry();
+    southWallGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    southWallGeometry.setIndex(southWallIndices);
+
+    // Create mesh for the south wall
+    const southWallMesh = new THREE.Mesh(southWallGeometry, houseMaterial);
+
+    // Create geometry for the cover
+    const coverGeometry = new THREE.BufferGeometry();
+    coverGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    coverGeometry.setIndex(coverIndices);
+
+    // Create mesh for the cover
+    const coverMesh = new THREE.Mesh(coverGeometry, houseMaterial);
+
+    // Create geometry for the floor
+    const floorGeometry = new THREE.BufferGeometry();
+    floorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    floorGeometry.setIndex(floorIndices);
+
+    // Create mesh for the floor
+    const floorMesh = new THREE.Mesh(floorGeometry, houseMaterial);
+
+    // Create geometry for the west wall
+    const westWallGeometry = new THREE.BufferGeometry();
+    westWallGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    westWallGeometry.setIndex(westWallIndices);
+
+    // Create mesh for the west wall
+    const westWallMesh = new THREE.Mesh(westWallGeometry, houseMaterial);
+
+    // Create geometry for the east wall
+    const eastWallGeometry = new THREE.BufferGeometry();
+    eastWallGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    eastWallGeometry.setIndex(eastWallIndices);
+
+    // Create mesh for the east wall
+    const eastWallMesh = new THREE.Mesh(eastWallGeometry, houseMaterial);
+
+    // Create geometry for the door
+    const doorGeometry = new THREE.BufferGeometry();
+    doorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    doorGeometry.setIndex(doorIndices);
+
+    // Create mesh for the door
+    const doorMesh = new THREE.Mesh(doorGeometry, doorAndWindowMaterial);
+
+    // Create geometry for the window1
+    const window1Geometry = new THREE.BufferGeometry();
+    window1Geometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    window1Geometry.setIndex(window1Indices);
+
+    // Create mesh for the window1
+    const window1Mesh = new THREE.Mesh(window1Geometry, doorAndWindowMaterial);
+
+    // Create geometry for the window2
+    const window2Geometry = new THREE.BufferGeometry();
+    window2Geometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    window2Geometry.setIndex(window2Indices);
+
+    // Create mesh for the window2
+    const window2Mesh = new THREE.Mesh(window2Geometry, doorAndWindowMaterial);
+
+    // Create geometry for the roof
+    const roofGeometry = new THREE.BufferGeometry();
+    roofGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    roofGeometry.setIndex(roofIndices);
+
+    // Create mesh for the roof
+    const roofMesh = new THREE.Mesh(roofGeometry, roofMaterial);
+
+    // Create geometry for the roof side 1
+    const roofSide1Geometry = new THREE.BufferGeometry();
+    roofSide1Geometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    roofSide1Geometry.setIndex(roofSide1Indices);
+
+    // Create mesh for the roof side 1
+    const roofSide1Mesh = new THREE.Mesh(roofSide1Geometry, roofMaterial);
+
+    // Create geometry for the roof side 2
+    const roofSide2Geometry = new THREE.BufferGeometry();
+    roofSide2Geometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    roofSide2Geometry.setIndex(roofSide2Indices);
+
+    // Create mesh for the roof side 2
+    const roofSide2Mesh = new THREE.Mesh(roofSide2Geometry, roofMaterial);
+
+    // Position and add meshes to the scene
+    northWallMesh.position.set(x, y, z);
+    scene.add(northWallMesh);
+    southWallMesh.position.set(x, y, z);
+    scene.add(southWallMesh);
+    coverMesh.position.set(x, y, z);
+    scene.add(coverMesh);
+    floorMesh.position.set(x, y, z);
+    scene.add(floorMesh);
+    westWallMesh.position.set(x, y, z);
+    scene.add(westWallMesh);
+    eastWallMesh.position.set(x, y, z);
+    scene.add(eastWallMesh);
+    doorMesh.position.set(x, y, z);
+    scene.add(doorMesh);
+    window1Mesh.position.set(x, y, z);
+    scene.add(window1Mesh);
+    window2Mesh.position.set(x, y, z);
+    scene.add(window2Mesh);
+    roofMesh.position.set(x, y, z);
+    scene.add(roofMesh);
+    roofSide1Mesh.position.set(x, y, z);
+    scene.add(roofSide1Mesh);
+    roofSide2Mesh.position.set(x, y, z);
+    scene.add(roofSide2Mesh);
+}
+
 //////////////////////
 /* CHECK COLLISIONS */
 //////////////////////
@@ -523,6 +783,7 @@ function init() {
     createMoon();
     createOvni();
     createLights();
+    createHouse(-5, 18, -20);
 
     globalClock = new THREE.Clock(true);
     deltaTime = globalClock.getDelta();
