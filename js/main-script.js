@@ -19,9 +19,6 @@ var leftArrowPressed, upArrowPressed, rightArrowPressed, downArrowPressed;
 var directionalLightSwitch = false, alreadySwitchDirectionalLight = false;
 var spotlightSwitch = false, alreadySwitchSpotlight = false;
 
-const directionalLightIntensity = 0;
-const spotLightIntensity = 30;
-
 var groundMaterial, rendererGround, rendererSky, colorCodes;
 
 var skydomeMaterial = new THREE.MeshStandardMaterial({
@@ -47,13 +44,12 @@ var directionalLight, spotLight, pointLights = [];
 
 var leftArrowPressed = false, upArrowPressed = false, rightArrowPressed = false, downArrowPressed = false;
 
-
 var directionalLightSwitch = false, alreadySwitchDirectionalLight = false;
 var pointLightSwitch = false, alreadySwitchPointLight = false;
 var spotlightSwitch = false, alreadySwitchSpotlight = false;
 
-const directionalLightIntensity = 30;
-const spotLightIntensity = 30;
+const directionalLightIntensity = 1;
+const spotLightIntensity = 5;
 const pointLightIntensity = 1;
 
 /* Ovni dimensions */
@@ -366,7 +362,6 @@ function createOvniBody(obj) {
     geometry.scale(r2Body, rBody, r2Body);
     const material = new THREE.MeshStandardMaterial({
         color: 0xffd45f,
-        wireframe: true,
     });
     const body = new THREE.Mesh(geometry, material);
     body.position.set(0, 0, 0);
@@ -378,10 +373,9 @@ function createOvniCockpit(obj) {
     const geometry = new THREE.SphereGeometry(rCockpit, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
     const material = new THREE.MeshBasicMaterial({
         color : 0xffd45f,
-        wireframe: true
     });
     const cockpit = new THREE.Mesh(geometry, material);
-    cockpit.position.set(0, rCockpit, 0);
+    cockpit.position.set(0, rCockpit-1.2, 0);
     obj.add(cockpit);
 }
 
@@ -390,10 +384,9 @@ function createOvniBottom(obj) {
     const geometry = new THREE.CylinderGeometry(1.5, 1.5, 1, 32);
     const material = new THREE.MeshBasicMaterial({
         color : 0xffd45f,
-        wireframe: true
     });
     const bottom = new THREE.Mesh(geometry, material);
-    bottom.position.set(0, -rCockpit - hCyl/2, 0);
+    bottom.position.set(0, -rCockpit - hCyl/2 + 1, 0);
     obj.add(bottom);
 }
 
@@ -451,39 +444,17 @@ function update(){
         alreadySwitchSpotlight = true;
         
     }
-    if (leftArrowPressed) {
-        moveX(ovni, -velocityValue, deltaTime);
-        moveX(spotLight, -velocityValue, deltaTime);
-    }
-    if (rightArrowPressed) {
-        moveX(ovni, velocityValue, deltaTime);
-        moveX(spotLight, velocityValue, deltaTime);
-    }
-    else if (number2Pressed) {
-        createSky();
-
-    spotLight.target.position.set(ovni.position.x, 0, ovni.position.z);
-    for (var i = 0; i < pointLights.length; i++) {
-        pointLights[i].position.set(ovni.position.x + spheres[i].position.x, ovni.position.y + spheres[i].position.y, ovni.position.z + spheres[i].position.z);
-        /* console.log(spheres[i].position); */
-    }
-    var velocityValue = 10;
-    if (directionalLightSwitch && ! alreadySwitchDirectionalLight) {
-        directionalLight.intensity = directionalLightIntensity - directionalLight.intensity;
-        alreadySwitchDirectionalLight = true;
-    }
-    if (spotlightSwitch && ! alreadySwitchSpotlight) {
-        spotLight.intensity = spotLightIntensity - spotLight.intensity;
-        alreadySwitchSpotlight = true;
-        
-    }
     if (pointLightSwitch && ! alreadySwitchPointLight) {
         for (var pointLight of pointLights) {
             pointLight.intensity = pointLightIntensity - pointLight.intensity;
         }
         alreadySwitchPointLight = true;
+    }   
+    
+    if (upArrowPressed) {
+        moveZ(ovni, -velocityValue, deltaTime);
+        moveZ(spotLight, -velocityValue, deltaTime);
     }
-    console.log(leftArrowPressed, upArrowPressed, rightArrowPressed, downArrowPressed);
     if (leftArrowPressed) {
         moveX(ovni, -velocityValue, deltaTime);
         moveX(spotLight, -velocityValue, deltaTime);
@@ -492,25 +463,12 @@ function update(){
         moveX(ovni, velocityValue, deltaTime);
         moveX(spotLight, velocityValue, deltaTime);
     }
-    if (upArrowPressed) {
-        moveZ(ovni, -velocityValue, deltaTime);
-        moveZ(spotLight, -velocityValue, deltaTime);
-    }
     if (downArrowPressed) {
         moveZ(ovni, velocityValue, deltaTime);
         moveZ(spotLight, velocityValue, deltaTime);
     }
+
     ovni.rotation.y += 0.01;
-}
-
-function moveX(object, value, deltaTime) {
-    const vec = new THREE.Vector3(value*deltaTime, 0, 0);
-    object.position.add(vec);
-}
-
-function moveZ(object, value, deltaTime) {
-    const vec = new THREE.Vector3(0, 0, value*deltaTime);
-    object.position.add(vec);
 }
 
 function moveX(object, value, deltaTime) {
