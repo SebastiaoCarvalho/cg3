@@ -1,6 +1,9 @@
 //////////////////////
 /* GLOBAL VARIABLES */
 //////////////////////
+
+var changeToBasic = false, changeToLambert = false, changeToPhong = false, changeToToon = false;
+
 /* Camera */
 var mainCamera;
 
@@ -71,11 +74,34 @@ const rSphere = 0.5;
 const xSphere = 5;
 const ySphere = - 2;
 
-/* House dimensions */
-var houseL = 20, houseD = 10, houseH = 15;
-var roofH = 5;
-var doorL = 2, doorH = 4;
-var windowL = 2, windowH = 2; 
+/* House */
+const houseL = 20, houseD = 10, houseH = 15;
+const roofH = 5;
+const doorL = 2, doorH = 4;
+const windowL = 2, windowH = 2; 
+
+var northWallMesh = new THREE.Mesh(), southWallMesh = new THREE.Mesh(), coverMesh = new THREE.Mesh(), floorMesh = new THREE.Mesh(), westWallMesh = new THREE.Mesh(), eastWallMesh = new THREE.Mesh();
+var doorMesh = new THREE.Mesh(), window1Mesh = new THREE.Mesh(), window2Mesh = new THREE.Mesh();
+var roofMesh = new THREE.Mesh(), roofSide1Mesh = new THREE.Mesh(), roofSide2Mesh = new THREE.Mesh();
+
+var houseMeshes;
+var doorAndWindowMeshes;
+var roofMeshes;
+
+const houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const houseMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xffffff});
+const houseMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xffffff});
+const houseMaterialToon = new THREE.MeshToonMaterial({ color: 0xffffff});
+
+const roofMaterial = new THREE.MeshBasicMaterial({ color: 0xff8000});
+const roofMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xff8000});
+const roofMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xff8000});
+const roofMaterialToon = new THREE.MeshToonMaterial({ color: 0xff8000});
+
+const doorAndWindowMaterial = new THREE.MeshBasicMaterial({ color: 0x000000});
+const doorAndWindowMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x000000});
+const doorAndWindowMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x000000});
+const doorAndWindowMaterialToon = new THREE.MeshToonMaterial({ color: 0x000000});
 
 /* Moon */
 var moon;
@@ -428,10 +454,6 @@ function createSphere(obj, x, y , z) {
     obj.add(sphere);
 }
 
-var houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
-var roofMaterial = new THREE.MeshBasicMaterial({ color: 0xff8000, side: THREE.DoubleSide });
-var doorAndWindowMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
-
 function createHouse(x, y, z) {
     "use strict";
 
@@ -480,14 +502,14 @@ function createHouse(x, y, z) {
 
     // Define faces of north wall
     const northWallIndices = [
-        1, 0, 2,
-        1, 2, 3,
+        2, 0, 1,
+        3, 2, 1,
     ];
 
     // Define faces of south wall
     const southWallIndices = [
-        17, 16, 18,
-        18, 19, 17,
+        18, 16, 17,
+        17, 19, 18,
     ];
 
     // Define faces of cover
@@ -553,11 +575,11 @@ function createHouse(x, y, z) {
     ];
 
     const roofSide1Indices = [
-        26, 3, 2,
+        2, 3, 26,
     ];
 
     const roofSide2Indices = [
-        27, 19, 18,
+        18, 19, 27,
     ];
 
     // Create geometry for the north wall
@@ -566,7 +588,7 @@ function createHouse(x, y, z) {
     northWallGeometry.setIndex(northWallIndices);
 
     // Create mesh for the north wall
-    const northWallMesh = new THREE.Mesh(northWallGeometry, houseMaterial);
+    northWallMesh = new THREE.Mesh(northWallGeometry, houseMaterial);
 
     // Create geometry for the south wall
     const southWallGeometry = new THREE.BufferGeometry();
@@ -574,7 +596,7 @@ function createHouse(x, y, z) {
     southWallGeometry.setIndex(southWallIndices);
 
     // Create mesh for the south wall
-    const southWallMesh = new THREE.Mesh(southWallGeometry, houseMaterial);
+    southWallMesh = new THREE.Mesh(southWallGeometry, houseMaterial);
 
     // Create geometry for the cover
     const coverGeometry = new THREE.BufferGeometry();
@@ -582,7 +604,7 @@ function createHouse(x, y, z) {
     coverGeometry.setIndex(coverIndices);
 
     // Create mesh for the cover
-    const coverMesh = new THREE.Mesh(coverGeometry, houseMaterial);
+    coverMesh = new THREE.Mesh(coverGeometry, houseMaterial);
 
     // Create geometry for the floor
     const floorGeometry = new THREE.BufferGeometry();
@@ -590,7 +612,7 @@ function createHouse(x, y, z) {
     floorGeometry.setIndex(floorIndices);
 
     // Create mesh for the floor
-    const floorMesh = new THREE.Mesh(floorGeometry, houseMaterial);
+    floorMesh = new THREE.Mesh(floorGeometry, houseMaterial);
 
     // Create geometry for the west wall
     const westWallGeometry = new THREE.BufferGeometry();
@@ -598,7 +620,7 @@ function createHouse(x, y, z) {
     westWallGeometry.setIndex(westWallIndices);
 
     // Create mesh for the west wall
-    const westWallMesh = new THREE.Mesh(westWallGeometry, houseMaterial);
+    westWallMesh = new THREE.Mesh(westWallGeometry, houseMaterial);
 
     // Create geometry for the east wall
     const eastWallGeometry = new THREE.BufferGeometry();
@@ -606,7 +628,7 @@ function createHouse(x, y, z) {
     eastWallGeometry.setIndex(eastWallIndices);
 
     // Create mesh for the east wall
-    const eastWallMesh = new THREE.Mesh(eastWallGeometry, houseMaterial);
+    eastWallMesh = new THREE.Mesh(eastWallGeometry, houseMaterial);
 
     // Create geometry for the door
     const doorGeometry = new THREE.BufferGeometry();
@@ -614,7 +636,7 @@ function createHouse(x, y, z) {
     doorGeometry.setIndex(doorIndices);
 
     // Create mesh for the door
-    const doorMesh = new THREE.Mesh(doorGeometry, doorAndWindowMaterial);
+    doorMesh = new THREE.Mesh(doorGeometry, doorAndWindowMaterial);
 
     // Create geometry for the window1
     const window1Geometry = new THREE.BufferGeometry();
@@ -622,7 +644,7 @@ function createHouse(x, y, z) {
     window1Geometry.setIndex(window1Indices);
 
     // Create mesh for the window1
-    const window1Mesh = new THREE.Mesh(window1Geometry, doorAndWindowMaterial);
+    window1Mesh = new THREE.Mesh(window1Geometry, doorAndWindowMaterial);
 
     // Create geometry for the window2
     const window2Geometry = new THREE.BufferGeometry();
@@ -630,7 +652,7 @@ function createHouse(x, y, z) {
     window2Geometry.setIndex(window2Indices);
 
     // Create mesh for the window2
-    const window2Mesh = new THREE.Mesh(window2Geometry, doorAndWindowMaterial);
+    window2Mesh = new THREE.Mesh(window2Geometry, doorAndWindowMaterial);
 
     // Create geometry for the roof
     const roofGeometry = new THREE.BufferGeometry();
@@ -638,7 +660,7 @@ function createHouse(x, y, z) {
     roofGeometry.setIndex(roofIndices);
 
     // Create mesh for the roof
-    const roofMesh = new THREE.Mesh(roofGeometry, roofMaterial);
+    roofMesh = new THREE.Mesh(roofGeometry, roofMaterial);
 
     // Create geometry for the roof side 1
     const roofSide1Geometry = new THREE.BufferGeometry();
@@ -646,7 +668,7 @@ function createHouse(x, y, z) {
     roofSide1Geometry.setIndex(roofSide1Indices);
 
     // Create mesh for the roof side 1
-    const roofSide1Mesh = new THREE.Mesh(roofSide1Geometry, roofMaterial);
+    roofSide1Mesh = new THREE.Mesh(roofSide1Geometry, roofMaterial);
 
     // Create geometry for the roof side 2
     const roofSide2Geometry = new THREE.BufferGeometry();
@@ -654,7 +676,7 @@ function createHouse(x, y, z) {
     roofSide2Geometry.setIndex(roofSide2Indices);
 
     // Create mesh for the roof side 2
-    const roofSide2Mesh = new THREE.Mesh(roofSide2Geometry, roofMaterial);
+    roofSide2Mesh = new THREE.Mesh(roofSide2Geometry, roofMaterial);
 
     // Position and add meshes to the scene
     northWallMesh.position.set(x, y, z);
@@ -681,6 +703,10 @@ function createHouse(x, y, z) {
     scene.add(roofSide1Mesh);
     roofSide2Mesh.position.set(x, y, z);
     scene.add(roofSide2Mesh);
+
+    houseMeshes = [northWallMesh, southWallMesh, coverMesh, floorMesh, westWallMesh, eastWallMesh];
+    doorAndWindowMeshes = [doorMesh, window1Mesh, window2Mesh];
+    roofMeshes = [roofMesh, roofSide1Mesh, roofSide2Mesh];
 }
 
 //////////////////////
@@ -743,6 +769,56 @@ function update(){
     }
 
     ovni.rotation.y += 0.01;
+
+    if(changeToBasic){
+        houseMeshes.forEach(mesh => { mesh.material.dispose();
+                                      mesh.material = houseMaterial;
+                                      mesh.material.needsUpdate = true;});
+        doorAndWindowMeshes.forEach(mesh => { mesh.material.dispose();
+                                              mesh.material = doorAndWindowMaterial;
+                                              mesh.material.needsUpdate = true;});
+        roofMeshes.forEach(mesh => { mesh.material.dispose();
+                                    mesh.material = roofMaterial;
+                                     mesh.material.needsUpdate = true;});
+        //changeToBasic = false;
+    }
+    else if(changeToLambert){
+        houseMeshes.forEach(mesh => { mesh.material.dispose();
+                                      mesh.material = houseMaterialLambert;
+                                      mesh.material.needsUpdate = true;});
+        doorAndWindowMeshes.forEach(mesh => { mesh.material.dispose();
+                                              mesh.material = doorAndWindowMaterialLambert;
+                                              mesh.material.needsUpdate = true;});
+        roofMeshes.forEach(mesh => { mesh.material.dispose();
+                                     mesh.material = roofMaterialLambert;
+                                     mesh.material.needsUpdate = true;});
+        //changeToLambert = false;
+    }
+    else if(changeToPhong){
+        houseMeshes.forEach(mesh => { mesh.material.dispose();
+                                      mesh.material = houseMaterialPhong;
+                                      mesh.material.needsUpdate = true;});
+        doorAndWindowMeshes.forEach(mesh => { mesh.material.dispose();
+                                              mesh.material = doorAndWindowMaterialPhong;
+                                              mesh.material.needsUpdate = true;});
+        roofMeshes.forEach(mesh => { mesh.material.dispose();
+                                     mesh.material = roofMaterialPhong;
+                                     mesh.material.needsUpdate = true;});
+        //changeToPhong = false;
+    }
+    else if(changeToToon){
+        houseMeshes.forEach(mesh => { mesh.material.dispose();
+                                      mesh.material = houseMaterialToon;
+                                      mesh.material.needsUpdate = true;});
+        doorAndWindowMeshes.forEach(mesh => { mesh.material.dispose();
+                                              mesh.material = doorAndWindowMaterialToon;
+                                              mesh.material.needsUpdate = true;});
+        roofMeshes.forEach(mesh => { mesh.material.dispose();
+                                     mesh.material = roofMaterialToon;
+                                     mesh.material.needsUpdate = true;});
+        //changeToToon = false;
+    }
+
 }
 
 function moveX(object, value, deltaTime) {
@@ -868,6 +944,19 @@ function onKeyDown(e) {
         case 40: // down arrow
             downArrowPressed = true;
             break;
+        case 81: // letter Q/q
+            changeToLambert = true;
+            break;
+        case 87: // letter W/w
+            changeToPhong = true;
+            break;
+        case 69: // letter E/e
+            changeToToon = true;
+            break;
+        case 82: // letter R/r
+            changeToBasic = true;
+            break;
+        
     }
 
 }
@@ -901,6 +990,18 @@ function onKeyUp(e){
             break;
         case 40: // down arrow
             downArrowPressed = false;
+            break;
+        case 81: // letter Q/q
+            changeToLambert = false;
+            break;
+        case 87: // letter W/w
+            changeToPhong = false;
+            break;
+        case 69: // letter E/e
+            changeToToon = false;
+            break;
+        case 82: // letter R/r
+            changeToBasic = false;
             break;
     }
 }
