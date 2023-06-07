@@ -93,10 +93,10 @@ var roofMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xff8000});
 var roofMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xff8000});
 var roofMaterialToon = new THREE.MeshToonMaterial({ color: 0xff8000});
 
-var doorAndWindowMaterial = new THREE.MeshBasicMaterial({ color: 0x000000});
-var doorAndWindowMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x000000});
-var doorAndWindowMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x000000});
-var doorAndWindowMaterialToon = new THREE.MeshToonMaterial({ color: 0x000000});
+var doorAndWindowMaterial = new THREE.MeshBasicMaterial({ color: 0x000091});
+var doorAndWindowMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x000091});
+var doorAndWindowMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x000091});
+var doorAndWindowMaterialToon = new THREE.MeshToonMaterial({ color: 0x000091});
 
 /* Moon */
 var moon;
