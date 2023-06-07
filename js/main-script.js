@@ -99,7 +99,27 @@ var doorAndWindowMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x000091})
 var doorAndWindowMaterialToon = new THREE.MeshToonMaterial({ color: 0x000091});
 
 /* Moon */
-var moon;
+var moonMesh;
+var moonMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffd45f,
+    emissive: 0xffd45f,
+    emissiveIntensity: 1.5,
+});
+var moonMaterialLambert = new THREE.MeshLambertMaterial({
+    color: 0xffd45f,
+    emissive: 0xffd45f,
+    emissiveIntensity: 1.5,
+});
+var moonMaterialPhong = new THREE.MeshPhongMaterial({
+    color: 0xffd45f,
+    emissive: 0xffd45f,
+    emissiveIntensity: 1.5,
+});
+var moonMaterialToon = new THREE.MeshToonMaterial({
+    color: 0xffd45f,
+    emissive: 0xffd45f,
+    emissiveIntensity: 1.5,
+});
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -150,7 +170,7 @@ function createLights() {
     scene.add(ambientLight);
     // Directional light
     directionalLight = new THREE.DirectionalLight(0xffffff, directionalLightIntensity);
-    directionalLight.position.set(moon.position.x, moon.position.y - 10, moon.position.z);
+    directionalLight.position.set(moonMesh.position.x, moonMesh.position.y - 10, moonMesh.position.z);
     directionalLight.castShadow = true;
     scene.add(directionalLight.target);
     directionalLight.target.position.set(1, 20, 2);
@@ -370,19 +390,11 @@ function createGround() {
 }
 
 function createMoon() {
-    "use strict";
-    moon = new THREE.Object3D();
-    
+    "use strict";    
     const geometry = new THREE.SphereGeometry(10, 32, 32);
-    const material = new THREE.MeshStandardMaterial({
-        color: 0xffd45f,
-        emissive: 0xffd45f,
-        emissiveIntensity: 1.5,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    moon.add(mesh);
-    moon.position.set(0, 50, 0);
-    scene.add(moon);
+    moonMesh = new THREE.Mesh(geometry, moonMaterial);
+    moonMesh.position.set(0, 50, 0);
+    scene.add(moonMesh);
 }
 
 function createOvni() {
@@ -708,24 +720,32 @@ function update(){
         houseMesh.material = houseMaterial;
         doorAndWindowMesh.material = doorAndWindowMaterial;
         roofMesh.material = roofMaterial;
+
+        moonMesh.material = moonMaterial;
         //changeToBasic = false;
     }
     else if(changeToLambert){
         houseMesh.material = houseMaterialLambert;
         doorAndWindowMesh.material = doorAndWindowMaterialLambert;
         roofMesh.material = roofMaterialLambert;
+
+        moonMesh.material = moonMaterialLambert;
         //changeToLambert = false;
     }
     else if(changeToPhong){
         houseMesh.material = houseMaterialPhong;
         doorAndWindowMesh.material = doorAndWindowMaterialPhong;
         roofMesh.material = roofMaterialPhong;
+
+        moonMesh.material = moonMaterialPhong;
         //changeToPhong = false;
     }
     else if(changeToToon){
         houseMesh.material = houseMaterialToon;
         doorAndWindowMesh.material = doorAndWindowMaterialToon;
         roofMesh.material = roofMaterialToon;
+
+        moonMesh.material = moonMaterialToon;
         //changeToToon = false;
     }
 
