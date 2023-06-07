@@ -481,18 +481,23 @@ function createHouse(x, y, z) {
         houseL/2, houseH/2, -houseD/2,  // Vertex 18
         houseL/2, houseH/2, houseD/2,   // Vertex 19
 
-        //east wall - auxiliary vertices
-        houseL/2 - spaceBetween, -houseH/2, houseD/2,                       // Vertex 20
-        houseL/2 - spaceBetween - doorL, -houseH/2, houseD/2,               // Vertex 21
-        -houseL/2, houseH/2 - 3 - windowH, houseD/2,                        // Vertex 22
-        -houseL/2, houseH/2 - 3, houseD/2,                                  // Vertex 23
-        houseL/2 - spaceBetween, houseH/2, houseD/2,                        // Vertex 24
-        houseL/2 - spaceBetween - doorL, houseH/2 - 3 - windowH, houseD/2, // Vertex 25
-
         //roof points
-        -houseL/2, houseH/2 + roofH, 0,  // Vertex 26
-        houseL/2, houseH/2 + roofH, 0,   // Vertex 27
+        -houseL/2, houseH/2 + roofH, 0,  // Vertex 20
+        houseL/2, houseH/2 + roofH, 0,   // Vertex 21
 
+        //east wall - auxiliary vertices
+        houseL/2, houseH/2 - 3 - doorH/2, houseD/2,                                                                 // Vertex 22
+        houseL/2 - spaceBetween - doorL/2, houseH/2, houseD/2,                                                      // Vertex 23
+        houseL/2 - spaceBetween - doorL - spaceBetween/2, houseH/2, houseD/2,                                       // Vertex 24
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL/2, houseH/2, houseD/2,                             // Vertex 25
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween/2, houseH/2, houseD/2,              // Vertex 26
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween - windowL/2, houseH/2, houseD/2,    // Vertex 27
+        -houseL/2, houseH/2 - 3 - windowH/2, houseD/2,                                                              // Vertex 28
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween - windowL/2, -houseH/2, houseD/2,   // Vertex 29
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween/2, -houseH/2, houseD/2,             // Vertex 30
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL/2, -houseH/2, houseD/2,                            // Vertex 31
+        houseL/2 - spaceBetween - doorL - spaceBetween/2, -houseH/2, houseD/2,                                      // Vertex 32
+        houseL/2 - spaceBetween - doorL/2, -houseH/2, houseD/2,                                                     // Vertex 33
     ];
 
     // Define faces of north wall
@@ -527,20 +532,38 @@ function createHouse(x, y, z) {
 
     // Define faces of east wall
     const eastWallIndices = [
-        17, 19, 24,
-        24, 20, 17,
-        20, 5, 7,
-        7, 21, 20,
-        21, 25, 22,
-        22, 1, 21,
-        25, 6, 8,
-        8, 9, 25,
+        19,23,4,
+        23, 6, 4,
+        23, 24, 6,
+        24, 8, 6,
+        24, 25, 8,
+        25, 10, 8,
+        25, 26, 10,
+        26, 12, 10,
+        26, 27, 12,
+        27, 14, 12,
+        27, 3, 14,
+        14, 3, 28,
+        14, 28, 15,
+        15, 28, 1,
+        15, 1, 29,
+        13, 15, 29,
+        13, 29, 30,
+        11, 13, 30,
+        11, 12, 13,
         11, 10, 12,
-        12, 13, 11,
-        15, 14, 23,
-        23, 22, 15,
-        4, 24, 3,
-        3, 23, 4,
+        11, 30, 31,
+        9, 11, 31,
+        9, 31, 32,
+        7, 9, 32,
+        7, 32, 33,
+        6, 9, 7,
+        6, 8, 9,
+        5, 7, 33,
+        17, 5, 33,
+        22, 5, 17,
+        22, 4, 5,
+        22, 19, 4, 
     ];
 
     // Define faces of door
@@ -563,18 +586,18 @@ function createHouse(x, y, z) {
 
     // Define faces of roof
     const roofIndices = [
-        26, 2, 18,
-        18, 27, 26,
-        3, 19, 27,
-        27, 26, 3,
+        20, 2, 18,
+        18, 21, 20,
+        3, 19, 21,
+        21, 20, 3,
     ];
 
     const roofSide1Indices = [
-        2, 3, 26,
+        2, 3, 20,
     ];
 
     const roofSide2Indices = [
-        18, 19, 27,
+        18, 19, 21,
     ];
 
     // House Mesh
