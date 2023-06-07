@@ -3,7 +3,7 @@
 //////////////////////
 
 /* Camera */
-var mainCamera;
+var mainCamera, stereoCamera;
 
 /* Renderers */
 var renderer, rendererSecondary; 
@@ -165,23 +165,16 @@ function createScene(){
 //////////////////////
 function createCamera(){
     const aspect = window.innerWidth / window.innerHeight;
-    const left = -140;
-    const right = 140;
-    const top = 75;
-    const down = -75;
     const fov = 90;
     const near = 1;
     const far = 1000;
-    tempCamera = new THREE.OrthographicCamera(
-        left,
-        right,
-        top,
-        down,
-        near,
-        far
-    );
+
+    stereoCamera = new THREE.StereoCamera();
+    stereoCamera.eyesep = 0.1;
+    stereoCamera.aspect = 2;
+
     tempCamera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    tempCamera.position.set(-35, 30, 0);
+    tempCamera.position.set(-35, 36, 0);
     tempCamera.lookAt(0,20,0);
 
     mainCamera = tempCamera;
@@ -302,7 +295,7 @@ function addTopPartOnBranch(obj, posVector, dimensionVector) {
     const material = new THREE.MeshBasicMaterial({
         color: 0x006400,
     });
-    ellipsoidGeometry.scale(dimensionVector.x*3.5, dimensionVector.y*1.25, dimensionVector.z);
+    ellipsoidGeometry.scale(dimensionVector.x*3.5, dimensionVector.y*2, dimensionVector.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
 
     topMesh.push(ellipsoidMesh);
@@ -316,7 +309,7 @@ function addTopOnTree(obj, posVector, dimensionVector) {
     const material = new THREE.MeshBasicMaterial({
         color: 0x006400,
     });
-    ellipsoidGeometry.scale(dimensionVector.x*1.75, dimensionVector.y*1.5, dimensionVector.z);
+    ellipsoidGeometry.scale(dimensionVector.x*1.75, dimensionVector.y*2, dimensionVector.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
     
     topMesh.push(ellipsoidMesh);
@@ -328,8 +321,8 @@ function addTopOnTree(obj, posVector, dimensionVector) {
 function createSkydome() {
     "use strict";
     skydome = new THREE.Object3D();
-    skydome.position.set(0, 0, 0);
-    const geometry = new THREE.SphereGeometry(50, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+    skydome.position.set(0, 10, 0);
+    const geometry = new THREE.SphereGeometry(60, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
     const mesh = new THREE.Mesh(geometry, skydomeMaterial);
     mesh.position.set(0, 0, 0);
     skydome.add(mesh);
@@ -377,8 +370,8 @@ function createSkyTexture() {
     sceneSecondary = new THREE.Scene();
     var geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
     
-    let a = { r: 0.00, g: 0.0467, b: 0.280 } // Dark blue
-    let b = { r: 0.224, g: 0.00, b: 0.280 }  // Dark purple
+    let a = { r: 0.051, g: 0.051, b: 0.255 } // Dark blue
+    let b = { r: 0.255, g: 0.102, b: 0.255 }  // Dark purple
 
     var colors = new Float32Array([
         a.r, a.g, a.b,      // top left
@@ -401,8 +394,6 @@ function createSkyTexture() {
     var texture = new THREE.CanvasTexture(rendererSky.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
     skydomeMaterial = new THREE.MeshPhongMaterial({
         map: texture,
-        emissive: 0x400040,
-        emissiveIntensity: 0.6,
         side: THREE.BackSide,
     });    
     createSkydome();
@@ -502,10 +493,10 @@ function createOvniBottom(obj) {
 }
 
 function createOvniSpheres(obj) {
-    createSphere(obj, xSphere, ySphere, 0);
-    createSphere(obj, - xSphere, ySphere, 0);
-    createSphere(obj, 0, ySphere, xSphere);
-    createSphere(obj, 0, ySphere, - xSphere);
+    createSphere(obj, xSphere, ySphere+0.2, 0);
+    createSphere(obj, - xSphere, ySphere+0.2, 0);
+    createSphere(obj, 0, ySphere+0.2, xSphere);
+    createSphere(obj, 0, ySphere+0.2, - xSphere);
 }
 
 function createSphere(obj, x, y , z) {
@@ -845,6 +836,9 @@ function init() {
     rendererSecondary.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(rendererSecondary.domElement);
 
+    document.body.appendChild( VRButton.createButton( renderer ) );
+    renderer.xr.enabled = true;
+
     createScene();
     createCamera();
 
@@ -862,7 +856,16 @@ function init() {
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
     window.addEventListener('resize', onResize);
+    renderer.xr.addEventListener('sessionstart', onVRSessionStart);
 }
+
+function onVRSessionStart() {
+    scene.position.set(20, -25, -10);    
+    renderer.setAnimationLoop( function () {
+        renderer.render( scene, mainCamera );
+    } );
+}
+
 
 /////////////////////
 /* ANIMATION CYCLE */
