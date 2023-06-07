@@ -153,11 +153,9 @@ var moonMaterialToon = new THREE.MeshToonMaterial({
 /////////////////////
 function createScene(){
     'use strict';
-    const backgroundColor = new THREE.Color("rgb(0, 0, 0)");
 
     scene = new THREE.Scene();
-    scene.background = backgroundColor;
-
+    scene.background = new THREE.Color("rgb(0, 0, 0)");
 }
 
 //////////////////////
@@ -169,15 +167,9 @@ function createCamera(){
     const near = 1;
     const far = 1000;
 
-    stereoCamera = new THREE.StereoCamera();
-    stereoCamera.eyesep = 0.1;
-    stereoCamera.aspect = 2;
-
-    tempCamera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    tempCamera.position.set(-35, 36, 0);
-    tempCamera.lookAt(0,20,0);
-
-    mainCamera = tempCamera;
+    mainCamera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    mainCamera.position.set(-35, 36, 0);
+    mainCamera.lookAt(0,20,0);
 }
 
 /////////////////////
@@ -188,6 +180,7 @@ function createLights() {
     // Ambient light
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
+
     // Directional light
     directionalLight = new THREE.DirectionalLight(0xffffff, directionalLightIntensity);
     directionalLight.position.set(moonMesh.position.x, moonMesh.position.y - 10, moonMesh.position.z);
@@ -195,12 +188,14 @@ function createLights() {
     scene.add(directionalLight.target);
     directionalLight.target.position.set(1, 20, 2);
     scene.add(directionalLight);
+
     // Spotlight
     spotLight = new THREE.SpotLight(0xd4d400, spotLightIntensity, 0, Math.PI / 6, 0);
     spotLight.position.set(0, ovni.position.y - hCyl - rBody, 0);
     spotLight.castShadow = true;
     scene.add(spotLight.target);
     scene.add(spotLight);
+
     // Point light
     for (var sphere of spheres) {
         const pointLight = new THREE.PointLight(0xff645f, pointLightIntensity, 100);
@@ -208,8 +203,8 @@ function createLights() {
         scene.add(pointLight);
         pointLights.push(pointLight);
     }
- 
 }
+
 ////////////////////////
 /* CREATE OBJECT3D(S) */
 ////////////////////////
@@ -237,16 +232,16 @@ function getRandomNumber(min, max) {
 }
 
 function createTrees(numberOfTrees) {
-    var posVectors = [];
+    var treesPos = [];
     while (numberOfTrees > 0) {
         const dimension = new THREE.Vector3(1, 1, getRandomNumber(7,12));
         const v = new THREE.Vector3(getRandomNumber(-40,20), 20, getRandomNumber(-40,40));
-        if (posVectors.includes(v)) 
+        if (treesPos.includes(v)) 
             continue;
         if ((-5-houseL <= v.x  && v.x <= -5+houseL) && (-20-houseD <= v.z && v.z <= -20+houseD)) {
             continue;
         }
-        posVectors.push(v);
+        treesPos.push(v);
         createTree(v, dimension);
         numberOfTrees -= 1;
     }
