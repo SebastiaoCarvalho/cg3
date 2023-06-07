@@ -2,8 +2,6 @@
 /* GLOBAL VARIABLES */
 //////////////////////
 
-var changeToBasic = false, changeToLambert = false, changeToPhong = false, changeToToon = false;
-
 /* Camera */
 var mainCamera;
 
@@ -21,6 +19,9 @@ var skydome;
 
 /* Tree */
 var tree;
+
+/* Texture flags */
+var changeToBasic = false, changeToLambert = false, changeToPhong = false, changeToToon = false;
 
 /* Colors for the textures */
 var colorCodes;
