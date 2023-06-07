@@ -370,9 +370,9 @@ function createSkyTexture() {
     sceneSecondary = new THREE.Scene();
     var geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
     
-    let a = { r: 0.051, g: 0.051, b: 0.255 } // Dark blue
-    let b = { r: 0.255, g: 0.102, b: 0.255 }  // Dark purple
-
+    let a = { r: 0.051, g: 0.051, b: 0.255 }
+    let b = { r: 0.255, g: 0.102, b: 0.255 } 
+    
     var colors = new Float32Array([
         a.r, a.g, a.b,      // top left
         a.r, a.g, a.b,      // top right
@@ -403,7 +403,7 @@ function fillSceneSky(object) {
     "use strict";
     colorCodes = []
     colorCodes.push(0xffffff);
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 500; i++) {
         addCircle(getRandomNumber(-2,2), getRandomNumber(-2,2), 0, object);
     }
 }
@@ -412,18 +412,18 @@ function fillSceneGround(object) {
     "use strict";
     colorCodes = [];
     colorCodes.push(0xffffff);
-    colorCodes.push(0xadd8e6);
+    colorCodes.push(0x00d2ff);
     colorCodes.push(0xb19cd9);
     colorCodes.push(0xffff00);
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 500; i++) {
         addCircle(getRandomNumber(-2,2), getRandomNumber(-2,2), i, object);
     }
 }
 
 function addCircle(x, y, i, object) {
     "use strict";
-    var i = Math.floor(i/50);
-    var geometry = new THREE.CircleGeometry(0.015, 32); 
+    var i = Math.floor(i/125);
+    var geometry = new THREE.CircleGeometry(0.01, 32); 
     var material = new THREE.MeshBasicMaterial( { color: colorCodes[i] } ); 
     const circle = new THREE.Mesh(geometry, material); 
     circle.position.set(x,y,0);
