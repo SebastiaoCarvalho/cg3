@@ -730,17 +730,17 @@ function update(){
     }
     var velocityValue = 10;
     if (directionalLightSwitch && ! alreadySwitchDirectionalLight) {
-        directionalLight.intensity = directionalLightIntensity - directionalLight.intensity;
+        directionalLight.visible = ! directionalLight.visible;
         alreadySwitchDirectionalLight = true;
     }
     if (spotlightSwitch && ! alreadySwitchSpotlight) {
-        spotLight.intensity = spotLightIntensity - spotLight.intensity;
+        spotLight.visible = ! spotLight.visible;
         alreadySwitchSpotlight = true;
         
     }
     if (pointLightSwitch && ! alreadySwitchPointLight) {
         for (var pointLight of pointLights) {
-            pointLight.intensity = pointLightIntensity - pointLight.intensity;
+            pointLight.visible = ! pointLight.visible;
         }
         alreadySwitchPointLight = true;
     }   
