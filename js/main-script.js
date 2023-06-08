@@ -148,6 +148,9 @@ var moonMaterialToon = new THREE.MeshToonMaterial({
     emissiveIntensity: 1.5,
 });
 
+/* VR on */ 
+var vrOn = false;
+
 /////////////////////
 /* CREATE SCENE(S) */
 /////////////////////
@@ -386,8 +389,8 @@ function createSkyTexture() {
     rendererSecondary.clear();
     rendererSecondary.render(sceneSecondary, cameraSky);
 
-    var texture = new THREE.CanvasTexture(rendererSky.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
-    skydomeMaterial = new THREE.MeshPhongMaterial({
+    var texture = new THREE.CanvasTexture(rendererSecondary.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
+    skydomeMaterial = new THREE.MeshBasicMaterial({ 
         map: texture,
         side: THREE.BackSide,
     });    
@@ -437,7 +440,7 @@ function createMoon() {
     "use strict";    
     const geometry = new THREE.SphereGeometry(10, 32, 32);
     moonMesh = new THREE.Mesh(geometry, moonMaterial);
-    moonMesh.position.set(0, 50, 0);
+    moonMesh.position.set(0, 55, 0);
     scene.add(moonMesh);
 }
 
@@ -855,10 +858,8 @@ function init() {
 }
 
 function onVRSessionStart() {
+    vrOn = true;
     scene.position.set(20, -25, -10);    
-    renderer.setAnimationLoop( function () {
-        renderer.render( scene, mainCamera );
-    } );
 }
 
 
@@ -873,7 +874,12 @@ function animate() {
     update();
     render();
 
-    requestAnimationFrame(animate);
+    if (!vrOn)
+        requestAnimationFrame(animate);
+    else 
+        renderer.setAnimationLoop( function () {
+            renderer.render( scene, mainCamera );
+        } );
 }
 
 ////////////////////////////
