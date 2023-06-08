@@ -1,6 +1,7 @@
 //////////////////////
 /* GLOBAL VARIABLES */
 //////////////////////
+
 /* Camera */
 var mainCamera;
 
@@ -19,6 +20,23 @@ var skydome;
 /* Tree */
 var tree;
 
+/* Tree meshes */
+var branchMesh = [], topMesh = [];
+
+/* Tree materials */
+const branchTreeMaterial = new THREE.MeshBasicMaterial({ color: 0x884802 });
+const branchTreeMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x884802 });
+const branchTreeMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x884802 });
+const branchTreeMaterialToon = new THREE.MeshToonMaterial({ color: 0x884802 });
+
+const topTreeMaterial = new THREE.MeshBasicMaterial({ color: 0x006400 });
+const topTreeMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x006400 });
+const topTreeMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x006400 });
+const topTreeMaterialToon = new THREE.MeshToonMaterial({ color: 0x006400 });
+
+/* Texture flags */
+var changeToBasic = false, changeToLambert = false, changeToPhong = false, changeToToon = false;
+
 /* Colors for the textures */
 var colorCodes;
 
@@ -26,14 +44,14 @@ var colorCodes;
 const map = new THREE.TextureLoader().load('pene.png');
 
 /* Ground material */
-var groundMaterial = new THREE.MeshStandardMaterial({
+var groundMaterial = new THREE.MeshPhongMaterial({
     color : 0xffffff,
     displacementMap : map,
     displacementScale : 50,
 }); 
 
 /* Skydome material */
-var skydomeMaterial = new THREE.MeshStandardMaterial({
+var skydomeMaterial = new THREE.MeshPhongMaterial({
     color: 0xff00ff,
 });
 
@@ -56,6 +74,15 @@ const pointLightIntensity = 0.3;
 /* Ovni */
 var ovni;
 
+/* Ovni meshes */
+var bodyMesh, cockpitMesh, bottomMesh;
+
+/* Ovni materials */
+const ovniMaterial = new THREE.MeshStandardMaterial({ color: 0xffd45f });
+const ovniMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xffd45f });
+const ovniMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xffd45f });
+const ovniMaterialToon = new THREE.MeshToonMaterial({ color: 0xffd45f });
+
 /* Ovni spheres */
 var spheres = []
 
@@ -71,14 +98,55 @@ const rSphere = 0.5;
 const xSphere = 5;
 const ySphere = - 2;
 
-/* House dimensions */
-var houseL = 20, houseD = 10, houseH = 15;
-var roofH = 5;
-var doorL = 2, doorH = 4;
-var windowL = 2, windowH = 2; 
+/* House */
+const houseL = 20, houseD = 10, houseH = 15;
+const roofH = 5;
+const doorL = 2, doorH = 4;
+const windowL = 2, windowH = 2; 
+
+/* House meshes */
+var houseMesh, doorAndWindowMesh, roofMesh;
+
+/* House materials */
+var houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff});
+var houseMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xffffff});
+var houseMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xffffff});
+var houseMaterialToon = new THREE.MeshToonMaterial({ color: 0xffffff});
+
+var roofMaterial = new THREE.MeshBasicMaterial({ color: 0xff8000});
+var roofMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xff8000});
+var roofMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xff8000});
+var roofMaterialToon = new THREE.MeshToonMaterial({ color: 0xff8000});
+
+var doorAndWindowMaterial = new THREE.MeshBasicMaterial({ color: 0x000091});
+var doorAndWindowMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x000091});
+var doorAndWindowMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x000091});
+var doorAndWindowMaterialToon = new THREE.MeshToonMaterial({ color: 0x000091});
 
 /* Moon */
-var moon;
+var moonMesh;
+
+/* Moon materials */
+var moonMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffd45f,
+    emissive: 0xffd45f,
+    emissiveIntensity: 1.5,
+});
+var moonMaterialLambert = new THREE.MeshLambertMaterial({
+    color: 0xffd45f,
+    emissive: 0xffd45f,
+    emissiveIntensity: 1.5,
+});
+var moonMaterialPhong = new THREE.MeshPhongMaterial({
+    color: 0xffd45f,
+    emissive: 0xffd45f,
+    emissiveIntensity: 1.5,
+});
+var moonMaterialToon = new THREE.MeshToonMaterial({
+    color: 0xffd45f,
+    emissive: 0xffd45f,
+    emissiveIntensity: 1.5,
+});
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -129,7 +197,7 @@ function createLights() {
     scene.add(ambientLight);
     // Directional light
     directionalLight = new THREE.DirectionalLight(0xffffff, directionalLightIntensity);
-    directionalLight.position.set(moon.position.x, moon.position.y - 10, moon.position.z);
+    directionalLight.position.set(moonMesh.position.x, moonMesh.position.y - 10, moonMesh.position.z);
     directionalLight.castShadow = true;
     scene.add(directionalLight.target);
     directionalLight.target.position.set(1, 20, 2);
@@ -152,6 +220,24 @@ function createLights() {
 ////////////////////////
 /* CREATE OBJECT3D(S) */
 ////////////////////////
+
+function changeOvniMaterial(material) {
+    bodyMesh.material = material;
+    cockpitMesh.material = material;
+    bottomMesh.material = material;
+    for (var sphere of spheres) {
+        sphere.material = material;
+    }
+}
+
+function chnageTreesMaterial(topMaterial, branchMaterial) {
+    for (var top of topMesh) {
+        top.material = topMaterial;
+    }
+    for (var branch of branchMesh) {
+        branch.material = branchMaterial;
+    }
+}
 
 function getRandomNumber(min, max) {
     return Math.random() * (max - min) + min;
@@ -197,6 +283,8 @@ function addBranch(obj, posVector, dimensionVector, rotationVector) {
     mesh.rotation.z = rotationVector.z;
     mesh.position.set(posVector.x,posVector.y,posVector.z);
 
+    branchMesh.push(mesh);
+
     var bbox = new THREE.Box3().setFromObject(mesh);
     let maxPos = new THREE.Vector3(bbox.max.x, bbox.max.y, bbox.max.z);
 
@@ -212,6 +300,8 @@ function addTopPartOnBranch(obj, posVector, dimensionVector) {
     ellipsoidGeometry.scale(dimensionVector.x*3.5, dimensionVector.y*1.25, dimensionVector.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
 
+    topMesh.push(ellipsoidMesh);
+
     ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z);
     obj.add(ellipsoidMesh);
 }
@@ -224,6 +314,8 @@ function addTopOnTree(obj, posVector, dimensionVector) {
     ellipsoidGeometry.scale(dimensionVector.x*1.75, dimensionVector.y*1.5, dimensionVector.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
     
+    topMesh.push(ellipsoidMesh);
+
     ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z-5);
     obj.add(ellipsoidMesh);
 }
@@ -261,7 +353,7 @@ function createGroundTexture() {
 
     var texture = new THREE.CanvasTexture(rendererGround.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
 
-    groundMaterial = new THREE.MeshStandardMaterial({
+    groundMaterial = new THREE.MeshPhongMaterial({
         map : texture,
         displacementMap : map,
         displacementScale : 50,
@@ -300,7 +392,7 @@ function createSkyTexture() {
     rendererSky.render(sceneSky, cameraSky);
 
     var texture = new THREE.CanvasTexture(rendererSky.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
-    skydomeMaterial = new THREE.MeshStandardMaterial({
+    skydomeMaterial = new THREE.MeshPhongMaterial({
         map: texture,
         emissive: 0x400040,
         emissiveIntensity: 0.6,
@@ -349,19 +441,11 @@ function createGround() {
 }
 
 function createMoon() {
-    "use strict";
-    moon = new THREE.Object3D();
-    
+    "use strict";    
     const geometry = new THREE.SphereGeometry(10, 32, 32);
-    const material = new THREE.MeshStandardMaterial({
-        color: 0xffd45f,
-        emissive: 0xffd45f,
-        emissiveIntensity: 1.5,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    moon.add(mesh);
-    moon.position.set(0, 50, 0);
-    scene.add(moon);
+    moonMesh = new THREE.Mesh(geometry, moonMaterial);
+    moonMesh.position.set(0, 50, 0);
+    scene.add(moonMesh);
 }
 
 function createOvni() {
@@ -371,9 +455,10 @@ function createOvni() {
     createOvniCockpit(ovni);
     createOvniBottom(ovni);
     createOvniSpheres(ovni);
-    ovni.position.set(0, 30, 0)
+    ovni.position.set(0, 40, 0)
     scene.add(ovni);
 }
+
 
 function createOvniBody(obj) {
     "use strict";
@@ -382,9 +467,9 @@ function createOvniBody(obj) {
     const material = new THREE.MeshStandardMaterial({
         color: 0xffd45f,
     });
-    const body = new THREE.Mesh(geometry, material);
-    body.position.set(0, 0, 0);
-    obj.add(body);
+    bodyMesh = new THREE.Mesh(geometry, material);
+    bodyMesh.position.set(0, 0, 0);
+    obj.add(bodyMesh);
 }
 
 function createOvniCockpit(obj) {
@@ -393,9 +478,9 @@ function createOvniCockpit(obj) {
     const material = new THREE.MeshBasicMaterial({
         color : 0xffd45f,
     });
-    const cockpit = new THREE.Mesh(geometry, material);
-    cockpit.position.set(0, rCockpit-1.2, 0);
-    obj.add(cockpit);
+    cockpitMesh = new THREE.Mesh(geometry, material);
+    cockpitMesh.position.set(0, rCockpit-1.2, 0);
+    obj.add(cockpitMesh);
 }
 
 function createOvniBottom(obj) {
@@ -404,9 +489,9 @@ function createOvniBottom(obj) {
     const material = new THREE.MeshBasicMaterial({
         color : 0xffd45f,
     });
-    const bottom = new THREE.Mesh(geometry, material);
-    bottom.position.set(0, -rCockpit - hCyl/2 + 1, 0);
-    obj.add(bottom);
+    bottomMesh = new THREE.Mesh(geometry, material);
+    bottomMesh.position.set(0, -rCockpit - hCyl/2 + 1, 0);
+    obj.add(bottomMesh);
 }
 
 function createOvniSpheres(obj) {
@@ -427,10 +512,6 @@ function createSphere(obj, x, y , z) {
     spheres.push(sphere);
     obj.add(sphere);
 }
-
-var houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
-var roofMaterial = new THREE.MeshBasicMaterial({ color: 0xff8000, side: THREE.DoubleSide });
-var doorAndWindowMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
 
 function createHouse(x, y, z) {
     "use strict";
@@ -464,30 +545,35 @@ function createHouse(x, y, z) {
         houseL/2, houseH/2, -houseD/2,  // Vertex 18
         houseL/2, houseH/2, houseD/2,   // Vertex 19
 
-        //east wall - auxiliary vertices
-        houseL/2 - spaceBetween, -houseH/2, houseD/2,                       // Vertex 20
-        houseL/2 - spaceBetween - doorL, -houseH/2, houseD/2,               // Vertex 21
-        -houseL/2, houseH/2 - 3 - windowH, houseD/2,                        // Vertex 22
-        -houseL/2, houseH/2 - 3, houseD/2,                                  // Vertex 23
-        houseL/2 - spaceBetween, houseH/2, houseD/2,                        // Vertex 24
-        houseL/2 - spaceBetween - doorL, houseH/2 - 3 - windowH, houseD/2, // Vertex 25
-
         //roof points
-        -houseL/2, houseH/2 + roofH, 0,  // Vertex 26
-        houseL/2, houseH/2 + roofH, 0,   // Vertex 27
+        -houseL/2, houseH/2 + roofH, 0,  // Vertex 20
+        houseL/2, houseH/2 + roofH, 0,   // Vertex 21
 
+        //east wall - auxiliary vertices
+        houseL/2, houseH/2 - 3 - doorH/2, houseD/2,                                                                 // Vertex 22
+        houseL/2 - spaceBetween - doorL/2, houseH/2, houseD/2,                                                      // Vertex 23
+        houseL/2 - spaceBetween - doorL - spaceBetween/2, houseH/2, houseD/2,                                       // Vertex 24
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL/2, houseH/2, houseD/2,                             // Vertex 25
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween/2, houseH/2, houseD/2,              // Vertex 26
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween - windowL/2, houseH/2, houseD/2,    // Vertex 27
+        -houseL/2, houseH/2 - 3 - windowH/2, houseD/2,                                                              // Vertex 28
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween - windowL/2, -houseH/2, houseD/2,   // Vertex 29
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL - spaceBetween/2, -houseH/2, houseD/2,             // Vertex 30
+        houseL/2 - spaceBetween - doorL - spaceBetween - windowL/2, -houseH/2, houseD/2,                            // Vertex 31
+        houseL/2 - spaceBetween - doorL - spaceBetween/2, -houseH/2, houseD/2,                                      // Vertex 32
+        houseL/2 - spaceBetween - doorL/2, -houseH/2, houseD/2,                                                     // Vertex 33
     ];
 
     // Define faces of north wall
     const northWallIndices = [
-        1, 0, 2,
-        1, 2, 3,
+        2, 0, 1,
+        3, 2, 1,
     ];
 
     // Define faces of south wall
     const southWallIndices = [
-        17, 16, 18,
-        18, 19, 17,
+        18, 16, 17,
+        17, 19, 18,
     ];
 
     // Define faces of cover
@@ -510,20 +596,38 @@ function createHouse(x, y, z) {
 
     // Define faces of east wall
     const eastWallIndices = [
-        17, 19, 24,
-        24, 20, 17,
-        20, 5, 7,
-        7, 21, 20,
-        21, 25, 22,
-        22, 1, 21,
-        25, 6, 8,
-        8, 9, 25,
+        19,23,4,
+        23, 6, 4,
+        23, 24, 6,
+        24, 8, 6,
+        24, 25, 8,
+        25, 10, 8,
+        25, 26, 10,
+        26, 12, 10,
+        26, 27, 12,
+        27, 14, 12,
+        27, 3, 14,
+        14, 3, 28,
+        14, 28, 15,
+        15, 28, 1,
+        15, 1, 29,
+        13, 15, 29,
+        13, 29, 30,
+        11, 13, 30,
+        11, 12, 13,
         11, 10, 12,
-        12, 13, 11,
-        15, 14, 23,
-        23, 22, 15,
-        4, 24, 3,
-        3, 23, 4,
+        11, 30, 31,
+        9, 11, 31,
+        9, 31, 32,
+        7, 9, 32,
+        7, 32, 33,
+        6, 9, 7,
+        6, 8, 9,
+        5, 7, 33,
+        17, 5, 33,
+        22, 5, 17,
+        22, 4, 5,
+        22, 19, 4, 
     ];
 
     // Define faces of door
@@ -546,141 +650,61 @@ function createHouse(x, y, z) {
 
     // Define faces of roof
     const roofIndices = [
-        26, 2, 18,
-        18, 27, 26,
-        3, 19, 27,
-        27, 26, 3,
+        20, 2, 18,
+        18, 21, 20,
+        3, 19, 21,
+        21, 20, 3,
     ];
 
     const roofSide1Indices = [
-        26, 3, 2,
+        2, 3, 20,
     ];
 
     const roofSide2Indices = [
-        27, 19, 18,
+        18, 19, 21,
     ];
 
-    // Create geometry for the north wall
-    const northWallGeometry = new THREE.BufferGeometry();
-    northWallGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    northWallGeometry.setIndex(northWallIndices);
+    // House Mesh
+    const houseGeometry = new THREE.BufferGeometry();
+    houseGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    houseGeometry.setIndex(northWallIndices.concat(
+        southWallIndices,
+        coverIndices,
+        floorIndices,
+        westWallIndices,
+        eastWallIndices,
+    ));
+    houseGeometry.computeVertexNormals();
 
-    // Create mesh for the north wall
-    const northWallMesh = new THREE.Mesh(northWallGeometry, houseMaterial);
+    houseMesh = new THREE.Mesh(houseGeometry, houseMaterial);
+    houseMesh.position.set(x, y, z);
+    scene.add(houseMesh);
 
-    // Create geometry for the south wall
-    const southWallGeometry = new THREE.BufferGeometry();
-    southWallGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    southWallGeometry.setIndex(southWallIndices);
+    // Door and Window Mesh
+    const doorAndWindowGeometry = new THREE.BufferGeometry();
+    doorAndWindowGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
+    doorAndWindowGeometry.setIndex(doorIndices.concat(
+        window1Indices,
+        window2Indices,
+    ));
+    doorAndWindowGeometry.computeVertexNormals();
 
-    // Create mesh for the south wall
-    const southWallMesh = new THREE.Mesh(southWallGeometry, houseMaterial);
+    doorAndWindowMesh = new THREE.Mesh(doorAndWindowGeometry, doorAndWindowMaterial);
+    doorAndWindowMesh.position.set(x, y, z);
+    scene.add(doorAndWindowMesh);
 
-    // Create geometry for the cover
-    const coverGeometry = new THREE.BufferGeometry();
-    coverGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    coverGeometry.setIndex(coverIndices);
-
-    // Create mesh for the cover
-    const coverMesh = new THREE.Mesh(coverGeometry, houseMaterial);
-
-    // Create geometry for the floor
-    const floorGeometry = new THREE.BufferGeometry();
-    floorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    floorGeometry.setIndex(floorIndices);
-
-    // Create mesh for the floor
-    const floorMesh = new THREE.Mesh(floorGeometry, houseMaterial);
-
-    // Create geometry for the west wall
-    const westWallGeometry = new THREE.BufferGeometry();
-    westWallGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    westWallGeometry.setIndex(westWallIndices);
-
-    // Create mesh for the west wall
-    const westWallMesh = new THREE.Mesh(westWallGeometry, houseMaterial);
-
-    // Create geometry for the east wall
-    const eastWallGeometry = new THREE.BufferGeometry();
-    eastWallGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    eastWallGeometry.setIndex(eastWallIndices);
-
-    // Create mesh for the east wall
-    const eastWallMesh = new THREE.Mesh(eastWallGeometry, houseMaterial);
-
-    // Create geometry for the door
-    const doorGeometry = new THREE.BufferGeometry();
-    doorGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    doorGeometry.setIndex(doorIndices);
-
-    // Create mesh for the door
-    const doorMesh = new THREE.Mesh(doorGeometry, doorAndWindowMaterial);
-
-    // Create geometry for the window1
-    const window1Geometry = new THREE.BufferGeometry();
-    window1Geometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    window1Geometry.setIndex(window1Indices);
-
-    // Create mesh for the window1
-    const window1Mesh = new THREE.Mesh(window1Geometry, doorAndWindowMaterial);
-
-    // Create geometry for the window2
-    const window2Geometry = new THREE.BufferGeometry();
-    window2Geometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    window2Geometry.setIndex(window2Indices);
-
-    // Create mesh for the window2
-    const window2Mesh = new THREE.Mesh(window2Geometry, doorAndWindowMaterial);
-
-    // Create geometry for the roof
+    // Roof Mesh
     const roofGeometry = new THREE.BufferGeometry();
     roofGeometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    roofGeometry.setIndex(roofIndices);
+    roofGeometry.setIndex(roofIndices.concat(
+        roofSide1Indices,
+        roofSide2Indices,
+    ));
+    roofGeometry.computeVertexNormals();
 
-    // Create mesh for the roof
-    const roofMesh = new THREE.Mesh(roofGeometry, roofMaterial);
-
-    // Create geometry for the roof side 1
-    const roofSide1Geometry = new THREE.BufferGeometry();
-    roofSide1Geometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    roofSide1Geometry.setIndex(roofSide1Indices);
-
-    // Create mesh for the roof side 1
-    const roofSide1Mesh = new THREE.Mesh(roofSide1Geometry, roofMaterial);
-
-    // Create geometry for the roof side 2
-    const roofSide2Geometry = new THREE.BufferGeometry();
-    roofSide2Geometry.setAttribute('position', new THREE.Float32BufferAttribute(houseVertices, 3));
-    roofSide2Geometry.setIndex(roofSide2Indices);
-
-    // Create mesh for the roof side 2
-    const roofSide2Mesh = new THREE.Mesh(roofSide2Geometry, roofMaterial);
-
-    // Position and add meshes to the scene
-    northWallMesh.position.set(x, y, z);
-    scene.add(northWallMesh);
-    southWallMesh.position.set(x, y, z);
-    scene.add(southWallMesh);
-    coverMesh.position.set(x, y, z);
-    scene.add(coverMesh);
-    floorMesh.position.set(x, y, z);
-    scene.add(floorMesh);
-    westWallMesh.position.set(x, y, z);
-    scene.add(westWallMesh);
-    eastWallMesh.position.set(x, y, z);
-    scene.add(eastWallMesh);
-    doorMesh.position.set(x, y, z);
-    scene.add(doorMesh);
-    window1Mesh.position.set(x, y, z);
-    scene.add(window1Mesh);
-    window2Mesh.position.set(x, y, z);
-    scene.add(window2Mesh);
+    roofMesh = new THREE.Mesh(roofGeometry, roofMaterial);
     roofMesh.position.set(x, y, z);
     scene.add(roofMesh);
-    roofSide1Mesh.position.set(x, y, z);
-    scene.add(roofSide1Mesh);
-    roofSide2Mesh.position.set(x, y, z);
-    scene.add(roofSide2Mesh);
 }
 
 //////////////////////
@@ -743,6 +767,39 @@ function update(){
     }
 
     ovni.rotation.y += 0.01;
+
+    if(changeToBasic){
+        houseMesh.material = houseMaterial;
+        doorAndWindowMesh.material = doorAndWindowMaterial;
+        roofMesh.material = roofMaterial;
+        changeOvniMaterial(ovniMaterial);
+        chnageTreesMaterial(topTreeMaterial, branchTreeMaterial);
+        moonMesh.material = moonMaterial;
+    }
+    else if(changeToLambert){
+        houseMesh.material = houseMaterialLambert;
+        doorAndWindowMesh.material = doorAndWindowMaterialLambert;
+        roofMesh.material = roofMaterialLambert;
+        changeOvniMaterial(ovniMaterialLambert);
+        chnageTreesMaterial(topTreeMaterialLambert, branchTreeMaterialLambert);
+        moonMesh.material = moonMaterialLambert;
+    }
+    else if(changeToPhong){
+        houseMesh.material = houseMaterialPhong;
+        doorAndWindowMesh.material = doorAndWindowMaterialPhong;
+        roofMesh.material = roofMaterialPhong;
+        changeOvniMaterial(ovniMaterialPhong);
+        chnageTreesMaterial(topTreeMaterialPhong, branchTreeMaterialPhong);
+        moonMesh.material = moonMaterialPhong;
+    }
+    else if(changeToToon){
+        houseMesh.material = houseMaterialToon;
+        doorAndWindowMesh.material = doorAndWindowMaterialToon;
+        roofMesh.material = roofMaterialToon;
+        changeOvniMaterial(ovniMaterialToon);
+        chnageTreesMaterial(topTreeMaterialToon, branchTreeMaterialToon);
+        moonMesh.material = moonMaterialToon;
+    }
 }
 
 function moveX(object, value, deltaTime) {
@@ -868,6 +925,19 @@ function onKeyDown(e) {
         case 40: // down arrow
             downArrowPressed = true;
             break;
+        case 81: // letter Q/q
+            changeToLambert = true;
+            break;
+        case 87: // letter W/w
+            changeToPhong = true;
+            break;
+        case 69: // letter E/e
+            changeToToon = true;
+            break;
+        case 82: // letter R/r
+            changeToBasic = true;
+            break;
+        
     }
 
 }
@@ -901,6 +971,18 @@ function onKeyUp(e){
             break;
         case 40: // down arrow
             downArrowPressed = false;
+            break;
+        case 81: // letter Q/q
+            changeToLambert = false;
+            break;
+        case 87: // letter W/w
+            changeToPhong = false;
+            break;
+        case 69: // letter E/e
+            changeToToon = false;
+            break;
+        case 82: // letter R/r
+            changeToBasic = false;
             break;
     }
 }
