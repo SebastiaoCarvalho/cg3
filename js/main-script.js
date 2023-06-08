@@ -78,17 +78,17 @@ var ovni;
 var bodyMesh, cockpitMesh, bottomMesh;
 
 /* Ovni materials */
-const ovniMaterial = new THREE.MeshStandardMaterial({ color: 0xbbf3f9 });
+const ovniMaterial = new THREE.MeshBasicMaterial({ color: 0xbbf3f9 });
 const ovniMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xbbf3f9 });
 const ovniMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xbbf3f9 });
 const ovniMaterialToon = new THREE.MeshToonMaterial({ color: 0xbbf3f9 });
  
-const ovniBodyMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
+const ovniBodyMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 });
 const ovniBodyMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x808080 });
 const ovniBodyMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x808080 });
 const ovniBodyMaterialToon = new THREE.MeshToonMaterial({ color: 0x808080 });
 
-const ovniSphereMaterial = new THREE.MeshStandardMaterial({ color: 0xff645f });
+const ovniSphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff645f });
 const ovniSphereMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xff645f });
 const ovniSphereMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xff645f });
 const ovniSphereMaterialToon = new THREE.MeshToonMaterial({ color: 0xff645f });
@@ -137,7 +137,7 @@ var doorAndWindowMaterialToon = new THREE.MeshToonMaterial({ color: 0x000091});
 var moonMesh;
 
 /* Moon materials */
-var moonMaterial = new THREE.MeshStandardMaterial({
+var moonMaterial = new THREE.MeshBasicMaterial({
     color: 0xffd45f,
     emissive: 0xffd45f,
     emissiveIntensity: 1.5,
@@ -470,7 +470,7 @@ function createOvniBody(obj) {
     "use strict";
     const geometry = new THREE.SphereGeometry(1, 32, 32);
     geometry.scale(r2Body, rBody, r2Body);
-    const material = new THREE.MeshStandardMaterial({
+    const material = new THREE.MeshBasicMaterial({
         color: 0x808080,
     });
     bodyMesh = new THREE.Mesh(geometry, material);
