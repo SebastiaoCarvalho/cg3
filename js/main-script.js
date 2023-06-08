@@ -20,6 +20,20 @@ var skydome;
 /* Tree */
 var tree;
 
+/* Tree meshes */
+var branchMesh = [], topMesh = [];
+
+/* Tree materials */
+const branchTreeMaterial = new THREE.MeshBasicMaterial({ color: 0x884802 });
+const branchTreeMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x884802 });
+const branchTreeMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x884802 });
+const branchTreeMaterialToon = new THREE.MeshToonMaterial({ color: 0x884802 });
+
+const topTreeMaterial = new THREE.MeshBasicMaterial({ color: 0x006400 });
+const topTreeMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x006400 });
+const topTreeMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x006400 });
+const topTreeMaterialToon = new THREE.MeshToonMaterial({ color: 0x006400 });
+
 /* Texture flags */
 var changeToBasic = false, changeToLambert = false, changeToPhong = false, changeToToon = false;
 
@@ -30,14 +44,14 @@ var colorCodes;
 const map = new THREE.TextureLoader().load('pene.png');
 
 /* Ground material */
-var groundMaterial = new THREE.MeshStandardMaterial({
+var groundMaterial = new THREE.MeshPhongMaterial({
     color : 0xffffff,
     displacementMap : map,
     displacementScale : 50,
 }); 
 
 /* Skydome material */
-var skydomeMaterial = new THREE.MeshStandardMaterial({
+var skydomeMaterial = new THREE.MeshPhongMaterial({
     color: 0xff00ff,
 });
 
@@ -60,6 +74,15 @@ const pointLightIntensity = 0.3;
 /* Ovni */
 var ovni;
 
+/* Ovni meshes */
+var bodyMesh, cockpitMesh, bottomMesh;
+
+/* Ovni materials */
+const ovniMaterial = new THREE.MeshStandardMaterial({ color: 0xffd45f });
+const ovniMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xffd45f });
+const ovniMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xffd45f });
+const ovniMaterialToon = new THREE.MeshToonMaterial({ color: 0xffd45f });
+
 /* Ovni spheres */
 var spheres = []
 
@@ -81,9 +104,11 @@ const roofH = 5;
 const doorL = 2, doorH = 4;
 const windowL = 2, windowH = 2; 
 
+/* House meshes */
 var houseMesh, doorAndWindowMesh, roofMesh;
 
-var houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+/* House materials */
+var houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff});
 var houseMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xffffff});
 var houseMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xffffff});
 var houseMaterialToon = new THREE.MeshToonMaterial({ color: 0xffffff});
@@ -100,6 +125,8 @@ var doorAndWindowMaterialToon = new THREE.MeshToonMaterial({ color: 0x000091});
 
 /* Moon */
 var moonMesh;
+
+/* Moon materials */
 var moonMaterial = new THREE.MeshStandardMaterial({
     color: 0xffd45f,
     emissive: 0xffd45f,
@@ -194,6 +221,24 @@ function createLights() {
 /* CREATE OBJECT3D(S) */
 ////////////////////////
 
+function changeOvniMaterial(material) {
+    bodyMesh.material = material;
+    cockpitMesh.material = material;
+    bottomMesh.material = material;
+    for (var sphere of spheres) {
+        sphere.material = material;
+    }
+}
+
+function chnageTreesMaterial(topMaterial, branchMaterial) {
+    for (var top of topMesh) {
+        top.material = topMaterial;
+    }
+    for (var branch of branchMesh) {
+        branch.material = branchMaterial;
+    }
+}
+
 function getRandomNumber(min, max) {
     return Math.random() * (max - min) + min;
 }
@@ -238,6 +283,8 @@ function addBranch(obj, posVector, dimensionVector, rotationVector) {
     mesh.rotation.z = rotationVector.z;
     mesh.position.set(posVector.x,posVector.y,posVector.z);
 
+    branchMesh.push(mesh);
+
     var bbox = new THREE.Box3().setFromObject(mesh);
     let maxPos = new THREE.Vector3(bbox.max.x, bbox.max.y, bbox.max.z);
 
@@ -253,6 +300,8 @@ function addTopPartOnBranch(obj, posVector, dimensionVector) {
     ellipsoidGeometry.scale(dimensionVector.x*3.5, dimensionVector.y*1.25, dimensionVector.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
 
+    topMesh.push(ellipsoidMesh);
+
     ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z);
     obj.add(ellipsoidMesh);
 }
@@ -265,6 +314,8 @@ function addTopOnTree(obj, posVector, dimensionVector) {
     ellipsoidGeometry.scale(dimensionVector.x*1.75, dimensionVector.y*1.5, dimensionVector.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
     
+    topMesh.push(ellipsoidMesh);
+
     ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z-5);
     obj.add(ellipsoidMesh);
 }
@@ -302,7 +353,7 @@ function createGroundTexture() {
 
     var texture = new THREE.CanvasTexture(rendererGround.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
 
-    groundMaterial = new THREE.MeshStandardMaterial({
+    groundMaterial = new THREE.MeshPhongMaterial({
         map : texture,
         displacementMap : map,
         displacementScale : 50,
@@ -341,7 +392,7 @@ function createSkyTexture() {
     rendererSky.render(sceneSky, cameraSky);
 
     var texture = new THREE.CanvasTexture(rendererSky.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
-    skydomeMaterial = new THREE.MeshStandardMaterial({
+    skydomeMaterial = new THREE.MeshPhongMaterial({
         map: texture,
         emissive: 0x400040,
         emissiveIntensity: 0.6,
@@ -408,6 +459,7 @@ function createOvni() {
     scene.add(ovni);
 }
 
+
 function createOvniBody(obj) {
     "use strict";
     const geometry = new THREE.SphereGeometry(1, 32, 32);
@@ -415,9 +467,9 @@ function createOvniBody(obj) {
     const material = new THREE.MeshStandardMaterial({
         color: 0xffd45f,
     });
-    const body = new THREE.Mesh(geometry, material);
-    body.position.set(0, 0, 0);
-    obj.add(body);
+    bodyMesh = new THREE.Mesh(geometry, material);
+    bodyMesh.position.set(0, 0, 0);
+    obj.add(bodyMesh);
 }
 
 function createOvniCockpit(obj) {
@@ -426,9 +478,9 @@ function createOvniCockpit(obj) {
     const material = new THREE.MeshBasicMaterial({
         color : 0xffd45f,
     });
-    const cockpit = new THREE.Mesh(geometry, material);
-    cockpit.position.set(0, rCockpit-1.2, 0);
-    obj.add(cockpit);
+    cockpitMesh = new THREE.Mesh(geometry, material);
+    cockpitMesh.position.set(0, rCockpit-1.2, 0);
+    obj.add(cockpitMesh);
 }
 
 function createOvniBottom(obj) {
@@ -437,9 +489,9 @@ function createOvniBottom(obj) {
     const material = new THREE.MeshBasicMaterial({
         color : 0xffd45f,
     });
-    const bottom = new THREE.Mesh(geometry, material);
-    bottom.position.set(0, -rCockpit - hCyl/2 + 1, 0);
-    obj.add(bottom);
+    bottomMesh = new THREE.Mesh(geometry, material);
+    bottomMesh.position.set(0, -rCockpit - hCyl/2 + 1, 0);
+    obj.add(bottomMesh);
 }
 
 function createOvniSpheres(obj) {
@@ -720,35 +772,34 @@ function update(){
         houseMesh.material = houseMaterial;
         doorAndWindowMesh.material = doorAndWindowMaterial;
         roofMesh.material = roofMaterial;
-
+        changeOvniMaterial(ovniMaterial);
+        chnageTreesMaterial(topTreeMaterial, branchTreeMaterial);
         moonMesh.material = moonMaterial;
-        //changeToBasic = false;
     }
     else if(changeToLambert){
         houseMesh.material = houseMaterialLambert;
         doorAndWindowMesh.material = doorAndWindowMaterialLambert;
         roofMesh.material = roofMaterialLambert;
-
+        changeOvniMaterial(ovniMaterialLambert);
+        chnageTreesMaterial(topTreeMaterialLambert, branchTreeMaterialLambert);
         moonMesh.material = moonMaterialLambert;
-        //changeToLambert = false;
     }
     else if(changeToPhong){
         houseMesh.material = houseMaterialPhong;
         doorAndWindowMesh.material = doorAndWindowMaterialPhong;
         roofMesh.material = roofMaterialPhong;
-
+        changeOvniMaterial(ovniMaterialPhong);
+        chnageTreesMaterial(topTreeMaterialPhong, branchTreeMaterialPhong);
         moonMesh.material = moonMaterialPhong;
-        //changeToPhong = false;
     }
     else if(changeToToon){
         houseMesh.material = houseMaterialToon;
         doorAndWindowMesh.material = doorAndWindowMaterialToon;
         roofMesh.material = roofMaterialToon;
-
+        changeOvniMaterial(ovniMaterialToon);
+        chnageTreesMaterial(topTreeMaterialToon, branchTreeMaterialToon);
         moonMesh.material = moonMaterialToon;
-        //changeToToon = false;
     }
-
 }
 
 function moveX(object, value, deltaTime) {
