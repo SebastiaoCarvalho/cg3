@@ -78,10 +78,20 @@ var ovni;
 var bodyMesh, cockpitMesh, bottomMesh;
 
 /* Ovni materials */
-const ovniMaterial = new THREE.MeshStandardMaterial({ color: 0xffd45f });
-const ovniMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xffd45f });
-const ovniMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xffd45f });
-const ovniMaterialToon = new THREE.MeshToonMaterial({ color: 0xffd45f });
+const ovniMaterial = new THREE.MeshStandardMaterial({ color: 0xbbf3f9 });
+const ovniMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xbbf3f9 });
+const ovniMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xbbf3f9 });
+const ovniMaterialToon = new THREE.MeshToonMaterial({ color: 0xbbf3f9 });
+ 
+const ovniBodyMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
+const ovniBodyMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x808080 });
+const ovniBodyMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x808080 });
+const ovniBodyMaterialToon = new THREE.MeshToonMaterial({ color: 0x808080 });
+
+const ovniSphereMaterial = new THREE.MeshStandardMaterial({ color: 0xff645f });
+const ovniSphereMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xff645f });
+const ovniSphereMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xff645f });
+const ovniSphereMaterialToon = new THREE.MeshToonMaterial({ color: 0xff645f });
 
 /* Ovni spheres */
 var spheres = []
@@ -212,12 +222,12 @@ function createLights() {
 /* CREATE OBJECT3D(S) */
 ////////////////////////
 
-function changeOvniMaterial(material) {
-    bodyMesh.material = material;
+function changeOvniMaterial(material, ovniBodyMaterial, ovniSphereMaterial) {
+    bodyMesh.material = ovniBodyMaterial;
     cockpitMesh.material = material;
     bottomMesh.material = material;
     for (var sphere of spheres) {
-        sphere.material = material;
+        sphere.material = ovniSphereMaterial;
     }
 }
 
@@ -461,7 +471,7 @@ function createOvniBody(obj) {
     const geometry = new THREE.SphereGeometry(1, 32, 32);
     geometry.scale(r2Body, rBody, r2Body);
     const material = new THREE.MeshStandardMaterial({
-        color: 0xffd45f,
+        color: 0x808080,
     });
     bodyMesh = new THREE.Mesh(geometry, material);
     bodyMesh.position.set(0, 0, 0);
@@ -472,7 +482,7 @@ function createOvniCockpit(obj) {
     "use strict";
     const geometry = new THREE.SphereGeometry(rCockpit, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
     const material = new THREE.MeshBasicMaterial({
-        color : 0xffd45f,
+        color : 0xbbf3f9,
     });
     cockpitMesh = new THREE.Mesh(geometry, material);
     cockpitMesh.position.set(0, rCockpit-1.2, 0);
@@ -483,7 +493,7 @@ function createOvniBottom(obj) {
     "use strict";
     const geometry = new THREE.CylinderGeometry(1.5, 1.5, 1, 32);
     const material = new THREE.MeshBasicMaterial({
-        color : 0xffd45f,
+        color : 0xbbf3f9,
     });
     bottomMesh = new THREE.Mesh(geometry, material);
     bottomMesh.position.set(0, -rCockpit - hCyl/2 + 1, 0);
@@ -501,7 +511,6 @@ function createSphere(obj, x, y , z) {
     const geometry = new THREE.SphereGeometry(rSphere, 32, 32);
     const material = new THREE.MeshBasicMaterial({
         color : 0xff645f,
-        wireframe: false
     });
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.set(x, y, z);
@@ -768,7 +777,7 @@ function update(){
         houseMesh.material = houseMaterial;
         doorAndWindowMesh.material = doorAndWindowMaterial;
         roofMesh.material = roofMaterial;
-        changeOvniMaterial(ovniMaterial);
+        changeOvniMaterial(ovniMaterial, ovniBodyMaterial, ovniSphereMaterial);
         chnageTreesMaterial(topTreeMaterial, branchTreeMaterial);
         moonMesh.material = moonMaterial;
     }
@@ -776,7 +785,7 @@ function update(){
         houseMesh.material = houseMaterialLambert;
         doorAndWindowMesh.material = doorAndWindowMaterialLambert;
         roofMesh.material = roofMaterialLambert;
-        changeOvniMaterial(ovniMaterialLambert);
+        changeOvniMaterial(ovniMaterialLambert, ovniBodyMaterialLambert, ovniSphereMaterialLambert);
         chnageTreesMaterial(topTreeMaterialLambert, branchTreeMaterialLambert);
         moonMesh.material = moonMaterialLambert;
     }
@@ -784,7 +793,7 @@ function update(){
         houseMesh.material = houseMaterialPhong;
         doorAndWindowMesh.material = doorAndWindowMaterialPhong;
         roofMesh.material = roofMaterialPhong;
-        changeOvniMaterial(ovniMaterialPhong);
+        changeOvniMaterial(ovniMaterialPhong, ovniBodyMaterialPhong, ovniSphereMaterialPhong);
         chnageTreesMaterial(topTreeMaterialPhong, branchTreeMaterialPhong);
         moonMesh.material = moonMaterialPhong;
     }
@@ -792,7 +801,7 @@ function update(){
         houseMesh.material = houseMaterialToon;
         doorAndWindowMesh.material = doorAndWindowMaterialToon;
         roofMesh.material = roofMaterialToon;
-        changeOvniMaterial(ovniMaterialToon);
+        changeOvniMaterial(ovniMaterialToon, ovniBodyMaterialToon, ovniSphereMaterialToon);
         chnageTreesMaterial(topTreeMaterialToon, branchTreeMaterialToon);
         moonMesh.material = moonMaterialToon;
     }
