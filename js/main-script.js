@@ -3,7 +3,12 @@
 //////////////////////
 
 /* Camera */
-var mainCamera, stereoCamera;
+var mainCamera;
+
+/* Camera used for textures */
+const cameraTexture = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
+cameraTexture.position.set(0, 0, 10);
+cameraTexture.lookAt(new THREE.Vector3(0, 0, 0));
 
 /* Renderers */
 var renderer, rendererSecondary; 
@@ -17,8 +22,20 @@ var globalClock, deltaTime;
 /* Skydome */
 var skydome;
 
+/* Skydome mesh */
+var skydomeMesh;
+
+/* Skydome radius */
+const skydomeRadius = 60;
+
 /* Tree */
 var tree;
+
+/* Number of trees */
+const numberOfTrees = 7;
+
+/* Tree top radius */
+const treeTopRadius = 0.5;
 
 /* Tree meshes */
 var branchMesh = [], topMesh = [];
@@ -34,26 +51,39 @@ const topTreeMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x006400 }
 const topTreeMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x006400 });
 const topTreeMaterialToon = new THREE.MeshToonMaterial({ color: 0x006400 });
 
-/* Texture flags */
+/* Material flags */
 var changeToBasic = false, changeToLambert = false, changeToPhong = false, changeToToon = false;
-
-/* Colors for the textures */
-var colorCodes;
 
 /* Load heightmap */
 const map = new THREE.TextureLoader().load('pene.png');
+
+/* Displacement scale */
+const displacementScale = 50;
+
+/* Ground mesh */
+var groundMesh;
 
 /* Ground material */
 var groundMaterial = new THREE.MeshPhongMaterial({
     color : 0xffffff,
     displacementMap : map,
-    displacementScale : 50,
+    displacementScale : displacementScale,
 }); 
 
 /* Skydome material */
 var skydomeMaterial = new THREE.MeshPhongMaterial({
     color: 0xff00ff,
 });
+
+/* Texture flags */
+var generatingGroundTexture = false, generatingSkyTexture = false;
+
+/* Colors for the textures */
+var colorCodes;
+
+/* Position and number of circles on the textures */
+const minXPos = -2, maxXPos = 2, minYPos = -2, maxYPos = 2;
+const numberOfCircles = 500;
 
 /* Arrow buttons */
 var leftArrowPressed = false, upArrowPressed = false, rightArrowPressed = false, downArrowPressed = false;
@@ -73,6 +103,9 @@ const pointLightIntensity = 0.3;
 
 /* Ovni */
 var ovni;
+
+/* Ovni velocity */
+const velocityValue = 10;
 
 /* Ovni meshes */
 var bodyMesh, cockpitMesh, bottomMesh;
@@ -106,7 +139,13 @@ const hCyl = 1;
 
 const rSphere = 0.5;
 const xSphere = 5;
-const ySphere = - 2;
+const ySphere = -1.8;
+
+/* Ovni bottom position */
+const ovniBottom = -rCockpit - hCyl/2 + 1;
+
+/* Ovni cockpit position */
+const ovniCockpit = rCockpit-1.2;
 
 /* Ovni rotation */
 const rotationSpeed = 2;
@@ -120,45 +159,52 @@ const roofH = 5;
 const doorL = 2, doorH = 4;
 const windowL = 2, windowH = 2; 
 
+/* House position */
+const housePos = new THREE.Vector3(-5, 20, -20);
+
 /* House meshes */
 var houseMesh, doorAndWindowMesh, roofMesh;
 
 /* House materials */
-var houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff});
-var houseMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xffffff});
-var houseMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xffffff});
-var houseMaterialToon = new THREE.MeshToonMaterial({ color: 0xffffff});
+const houseMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff});
+const houseMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xffffff});
+const houseMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xffffff});
+const houseMaterialToon = new THREE.MeshToonMaterial({ color: 0xffffff});
 
-var roofMaterial = new THREE.MeshBasicMaterial({ color: 0xff8000});
-var roofMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xff8000});
-var roofMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xff8000});
-var roofMaterialToon = new THREE.MeshToonMaterial({ color: 0xff8000});
+const roofMaterial = new THREE.MeshBasicMaterial({ color: 0xff8000});
+const roofMaterialLambert = new THREE.MeshLambertMaterial({ color: 0xff8000});
+const roofMaterialPhong = new THREE.MeshPhongMaterial({ color: 0xff8000});
+const roofMaterialToon = new THREE.MeshToonMaterial({ color: 0xff8000});
 
-var doorAndWindowMaterial = new THREE.MeshBasicMaterial({ color: 0x000091});
-var doorAndWindowMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x000091});
-var doorAndWindowMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x000091});
-var doorAndWindowMaterialToon = new THREE.MeshToonMaterial({ color: 0x000091});
+const doorAndWindowMaterial = new THREE.MeshBasicMaterial({ color: 0x000091});
+const doorAndWindowMaterialLambert = new THREE.MeshLambertMaterial({ color: 0x000091});
+const doorAndWindowMaterialPhong = new THREE.MeshPhongMaterial({ color: 0x000091});
+const doorAndWindowMaterialToon = new THREE.MeshToonMaterial({ color: 0x000091});
 
 /* Moon */
 var moonMesh;
 
+/* Moon height */
+const hMoon = 55;
+
+/* Moon radius */
+const moonRadius = 10;
+
 /* Moon materials */
-var moonMaterial = new THREE.MeshBasicMaterial({
+const moonMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffd45f,
+});
+const moonMaterialLambert = new THREE.MeshLambertMaterial({
     color: 0xffd45f,
     emissive: 0xffd45f,
     emissiveIntensity: 1.5,
 });
-var moonMaterialLambert = new THREE.MeshLambertMaterial({
+const moonMaterialPhong = new THREE.MeshPhongMaterial({
     color: 0xffd45f,
     emissive: 0xffd45f,
     emissiveIntensity: 1.5,
 });
-var moonMaterialPhong = new THREE.MeshPhongMaterial({
-    color: 0xffd45f,
-    emissive: 0xffd45f,
-    emissiveIntensity: 1.5,
-});
-var moonMaterialToon = new THREE.MeshToonMaterial({
+const moonMaterialToon = new THREE.MeshToonMaterial({
     color: 0xffd45f,
     emissive: 0xffd45f,
     emissiveIntensity: 1.5,
@@ -169,6 +215,9 @@ var vrOn = false;
 
 /* Radial segments for spheres and cylinders*/
 const radialSegments = 32;
+
+/* Height segments for spheres and cylinders*/
+const heightSegments = 16;
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -184,21 +233,26 @@ function createScene(){
 /* CREATE CAMERA(S) */
 //////////////////////
 function createCamera(){
+    'use strict';
+
     const aspect = window.innerWidth / window.innerHeight;
     const fov = 90;
     const near = 1;
     const far = 1000;
+    const cameraPos = new THREE.Vector3(-35, 36, 0);
+    const cameraLookAt = new THREE.Vector3(0, 20, 0);
 
     mainCamera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-    mainCamera.position.set(-35, 36, 0);
-    mainCamera.lookAt(0,20,0);
+    mainCamera.position.set(cameraPos.x, cameraPos.y, cameraPos.z);
+    mainCamera.lookAt(cameraLookAt.x, cameraLookAt.y, cameraLookAt.z);
 }
 
 /////////////////////
 /* CREATE LIGHT(S) */
 /////////////////////
 function createLights() {
-    "use strict";
+    'use strict';
+
     // Ambient light
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
@@ -231,6 +285,8 @@ function createLights() {
 ////////////////////////
 
 function changeOvniMaterial(material, ovniBodyMaterial, ovniSphereMaterial) {
+    'use strict';
+
     bodyMesh.material = ovniBodyMaterial;
     cockpitMesh.material = material;
     bottomMesh.material = material;
@@ -240,6 +296,8 @@ function changeOvniMaterial(material, ovniBodyMaterial, ovniSphereMaterial) {
 }
 
 function chnageTreesMaterial(topMaterial, branchMaterial) {
+    'use strict';
+
     for (var top of topMesh) {
         top.material = topMaterial;
     }
@@ -249,17 +307,30 @@ function chnageTreesMaterial(topMaterial, branchMaterial) {
 }
 
 function getRandomNumber(min, max) {
+    'use strict';
+
     return Math.random() * (max - min) + min;
 }
 
 function createTrees(numberOfTrees) {
+    'use strict';
+
     var treesPos = [];
+    const hTreeMin = 7, hTreeMax = 12;
+    const rTree = 1;
+    const treePosXMin = -40, treePosXMax = 20;
+    const treePosY = 20;
+    const treePosZMin = -40, treePosZMax = 40;
+    const housePosXMin = -5-houseL, housePosXMax = -5+houseL;
+    const housePosZMin = -20-houseD, housePosZMax = -20+houseD;
+
     while (numberOfTrees > 0) {
-        const dimension = new THREE.Vector3(1, 1, getRandomNumber(7,12));
-        const v = new THREE.Vector3(getRandomNumber(-40,20), 20, getRandomNumber(-40,40));
+        const dimension = new THREE.Vector3(rTree, rTree, getRandomNumber(hTreeMin,hTreeMax));
+        const v = new THREE.Vector3(getRandomNumber(treePosXMin,treePosXMax), treePosY, 
+            getRandomNumber(treePosZMin,treePosZMax));
         if (treesPos.includes(v)) 
             continue;
-        if ((-5-houseL <= v.x  && v.x <= -5+houseL) && (-20-houseD <= v.z && v.z <= -20+houseD)) {
+        if ((housePosXMin <= v.x  && v.x <= housePosXMax) && (housePosZMin <= v.z && v.z <= housePosZMax)) {
             continue;
         }
         treesPos.push(v);
@@ -269,14 +340,18 @@ function createTrees(numberOfTrees) {
 }
 
 function createTree(posVector, dimensionVector) {
+    'use strict';
+
+    const minBranchRotation = Math.PI/20, maxBranchRotation = Math.PI/16;
+    const secondaryBranchPos = new THREE.Vector3(posVector.x+1,posVector.y+2,posVector.z-1);
+    const secondaryBranchDim = new THREE.Vector3(dimensionVector.x/3, dimensionVector.y/3, dimensionVector.z/2);
+
     tree = new THREE.Object3D();
 
-    const i = getRandomNumber(Math.PI/20, Math.PI/16);
+    const i = getRandomNumber(minBranchRotation, maxBranchRotation);
+    
     addBranch(tree, posVector, dimensionVector, new THREE.Vector3(i,0,0));
-
-    const branchPos = new THREE.Vector3(posVector.x+1,posVector.y+2,posVector.z-1); 
-    const branchDim = new THREE.Vector3(dimensionVector.x/3, dimensionVector.y/3, dimensionVector.z/2);
-    addBranch(tree, branchPos, branchDim, new THREE.Vector3(0, 0, -i*2)); 
+    addBranch(tree, secondaryBranchPos, secondaryBranchDim, new THREE.Vector3(0, 0, -i*2)); 
     
     const bbox = new THREE.Box3().setFromObject(tree);
     const topPos = new THREE.Vector3(bbox.max.x, bbox.max.y, bbox.max.z)
@@ -286,10 +361,10 @@ function createTree(posVector, dimensionVector) {
 }
 
 function addBranch(obj, posVector, dimensionVector, rotationVector) {
+    'use strict';
+
     const geometry = new THREE.CylinderGeometry(dimensionVector.x,dimensionVector.y,dimensionVector.z, radialSegments);
-    const material = new THREE.MeshBasicMaterial({
-        color: 0x884802,
-    });
+    const material = new THREE.MeshBasicMaterial({ color: 0x884802 });
     const mesh = new THREE.Mesh(geometry, material);
 
     mesh.rotation.x = rotationVector.x;
@@ -307,13 +382,14 @@ function addBranch(obj, posVector, dimensionVector, rotationVector) {
 }
 
 function addTopPartOnBranch(obj, posVector, dimensionVector) {
-    const ellipsoidGeometry = new THREE.SphereGeometry(0.5, radialSegments, 16);
-    const material = new THREE.MeshBasicMaterial({
-        color: 0x006400,
-    });
-    ellipsoidGeometry.scale(dimensionVector.x*3.5, dimensionVector.y*2, dimensionVector.z);
-    const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
+    'use strict';
 
+    const treeTopDim = new THREE.Vector3(dimensionVector.x*3.5, dimensionVector.y*2, dimensionVector.z);
+    const ellipsoidGeometry = new THREE.SphereGeometry(treeTopRadius, radialSegments, heightSegments);
+    const material = new THREE.MeshBasicMaterial({ color: 0x006400 });
+
+    ellipsoidGeometry.scale(treeTopDim.x, treeTopDim.y, treeTopDim.z);
+    const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
     topMesh.push(ellipsoidMesh);
 
     ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z);
@@ -321,73 +397,71 @@ function addTopPartOnBranch(obj, posVector, dimensionVector) {
 }
 
 function addTopOnTree(obj, posVector, dimensionVector) {
-    const ellipsoidGeometry = new THREE.SphereGeometry(0.5, radialSegments, 16);
-    const material = new THREE.MeshBasicMaterial({
-        color: 0x006400,
-    });
-    ellipsoidGeometry.scale(dimensionVector.x*1.75, dimensionVector.y*2, dimensionVector.z);
+    'use strict';
+
+    const treeTopDim = new THREE.Vector3(dimensionVector.x*1.75, dimensionVector.y*2, dimensionVector.z);
+    const treeTopPos = new THREE.Vector3(posVector.x, posVector.y, posVector.z-5);
+    const ellipsoidGeometry = new THREE.SphereGeometry(treeTopRadius, radialSegments, heightSegments);
+    const material = new THREE.MeshBasicMaterial({ color: 0x006400 });
+
+    ellipsoidGeometry.scale(treeTopDim.x, treeTopDim.y, treeTopDim.z);
     const ellipsoidMesh = new THREE.Mesh(ellipsoidGeometry, material);
-    
     topMesh.push(ellipsoidMesh);
 
-    ellipsoidMesh.position.set(posVector.x, posVector.y, posVector.z-5);
+    ellipsoidMesh.position.set(treeTopPos.x, treeTopPos.y, treeTopPos.z);
     obj.add(ellipsoidMesh);
 }
 
 function createSkydome() {
-    "use strict";
+    'use strict';
+
+    const skydomePosition = new THREE.Vector3(0, 10, 0);
     skydome = new THREE.Object3D();
-    skydome.position.set(0, 10, 0);
-    const geometry = new THREE.SphereGeometry(60, radialSegments, radialSegments, 0, Math.PI * 2, 0, Math.PI / 2);
-    const mesh = new THREE.Mesh(geometry, skydomeMaterial);
-    mesh.position.set(0, 0, 0);
-    skydome.add(mesh);
+    skydome.position.set(skydomePosition.x, skydomePosition.y, skydomePosition.z);
+
+    const geometry = new THREE.SphereGeometry(skydomeRadius, radialSegments, 
+            heightSegments, 0, Math.PI * 2, 0, Math.PI / 2);
+    skydomeMesh = new THREE.Mesh(geometry, skydomeMaterial);
+    skydomeMesh.position.set(0, 0, 0);
+
+    skydome.add(skydomeMesh);
     scene.add(skydome);
 }
 
 function createGroundTexture() {
-    "use strict";
-    const cameraGround = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
-    cameraGround.position.set(0, 0, 10);
-    cameraGround.lookAt(new THREE.Vector3(0, 0, 0));
+    'use strict';
     
-    var object = new THREE.Object3D();
+    const object = new THREE.Object3D();
     sceneSecondary = new THREE.Scene();
-    var geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
-    var material = new THREE.MeshBasicMaterial({
-        color: 0x90ee90,
-    });
-
-    var mesh = new THREE.Mesh(geometry, material);
+    const geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
+    const material = new THREE.MeshBasicMaterial({ color: 0x90ee90 });
+    const mesh = new THREE.Mesh(geometry, material);
     object.add(mesh);
+
     fillSceneGround(object);
     sceneSecondary.add(object);
     
     rendererSecondary.clear();
-    rendererSecondary.render(sceneSecondary, cameraGround);
+    rendererSecondary.render(sceneSecondary, cameraTexture);
 
-    var texture = new THREE.CanvasTexture(rendererSecondary.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
-
-    groundMaterial = new THREE.MeshPhongMaterial({
-        map : texture,
+    const groundTexture = new THREE.CanvasTexture(rendererSecondary.domElement, THREE.UVMapping, 
+                THREE.RepeatWrapping, THREE.RepeatWrapping);
+    groundMesh.material = new THREE.MeshPhongMaterial({
+        map : groundTexture,
         displacementMap : map,
         displacementScale : 50,
     }); 
-    createGround();
 }
 
 function createSkyTexture() {
-    "use strict";
-    const cameraSky = new THREE.OrthographicCamera(-2, 2, 2, -2, 1, 100);
-    cameraSky.position.set(0, 0, 10);
-    cameraSky.lookAt(new THREE.Vector3(0, 0, 0));
+    'use strict';
 
-    var object = new THREE.Object3D();
+    const object = new THREE.Object3D();
     sceneSecondary = new THREE.Scene();
-    var geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
+    const geometry = new THREE.PlaneGeometry(4, 4, 1, 1);
     
-    let a = { r: 0.051, g: 0.051, b: 0.255 }
-    let b = { r: 0.255, g: 0.102, b: 0.255 } 
+    let a = { r: 0.051, g: 0.051, b: 0.255 }    // dark blue color
+    let b = { r: 0.255, g: 0.102, b: 0.255 }    // purple color
     
     var colors = new Float32Array([
         a.r, a.g, a.b,      // top left
@@ -396,74 +470,84 @@ function createSkyTexture() {
         b.r, b.g, b.b ]);   // bottom right
         
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-    
-    var material = new THREE.MeshBasicMaterial({ vertexColors: true });
-    
-    var mesh = new THREE.Mesh(geometry, material);
+    const material = new THREE.MeshBasicMaterial({ vertexColors: true });
+    const mesh = new THREE.Mesh(geometry, material);
     object.add(mesh);
+
     fillSceneSky(object);
     sceneSecondary.add(object);
     
     rendererSecondary.clear();
-    rendererSecondary.render(sceneSecondary, cameraSky);
+    rendererSecondary.render(sceneSecondary, cameraTexture);
 
-    var texture = new THREE.CanvasTexture(rendererSecondary.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
-    skydomeMaterial = new THREE.MeshPhongMaterial({ 
-        map: texture,
+    var skyTexture = new THREE.CanvasTexture(rendererSecondary.domElement, THREE.UVMapping, 
+                THREE.RepeatWrapping, THREE.RepeatWrapping);
+    skydomeMesh.material = new THREE.MeshPhongMaterial({ 
+        map: skyTexture,
         side: THREE.BackSide,
     });    
-    createSkydome();
 }
     
 function fillSceneSky(object) {
-    "use strict";
+    'use strict';
+
     colorCodes = []
     colorCodes.push(0xffffff);
-    for (let i = 0; i < 500; i++) {
-        addCircle(getRandomNumber(-2,2), getRandomNumber(-2,2), 0, object);
+
+    for (let i = 0; i < numberOfCircles; i++) {
+        addCircle(getRandomNumber(minXPos, maxXPos), getRandomNumber(minYPos, maxYPos), 0, object);
     }
 }
 
 function fillSceneGround(object) {
-    "use strict";
+    'use strict';
+
     colorCodes = [];
     colorCodes.push(0xffffff);
     colorCodes.push(0x00d2ff);
     colorCodes.push(0xb19cd9);
     colorCodes.push(0xffff00);
-    for (let i = 0; i < 500; i++) {
-        addCircle(getRandomNumber(-2,2), getRandomNumber(-2,2), i, object);
+
+    for (let i = 0; i < numberOfCircles; i++) {
+        addCircle(getRandomNumber(minXPos, maxXPos), getRandomNumber(minYPos, maxYPos), i, object);
     }
 }
 
 function addCircle(x, y, i, object) {
-    "use strict";
+    'use strict';
+
+    const circleRadius = 0.01;
     var i = Math.floor(i/125);
-    var geometry = new THREE.CircleGeometry(0.01, radialSegments); 
-    var material = new THREE.MeshBasicMaterial( { color: colorCodes[i] } ); 
+    const material = new THREE.MeshBasicMaterial({ color: colorCodes[i] }); 
+    const geometry = new THREE.CircleGeometry(circleRadius, radialSegments); 
+    
     const circle = new THREE.Mesh(geometry, material); 
     circle.position.set(x,y,0);
     object.add(circle);
 }
 
 function createGround() {
-    "use strict";
+    'use strict';
+
     const groundGeo = new THREE.PlaneGeometry(100, 100, 100, 100);
-    const ground = new THREE.Mesh(groundGeo, groundMaterial);
-    ground.rotation.x = - Math.PI / 2;
-    scene.add(ground);
+    groundMesh = new THREE.Mesh(groundGeo, groundMaterial);
+    groundMesh.rotation.x = - Math.PI / 2;
+    scene.add(groundMesh);
 }
 
 function createMoon() {
-    "use strict";    
-    const geometry = new THREE.SphereGeometry(10, radialSegments, radialSegments);
+    'use strict';
+     
+    const geometry = new THREE.SphereGeometry(moonRadius, radialSegments, heightSegments);
+
     moonMesh = new THREE.Mesh(geometry, moonMaterial);
-    moonMesh.position.set(0, 55, 0);
+    moonMesh.position.set(0, hMoon, 0);
     scene.add(moonMesh);
 }
 
 function createOvni() {
-    "use strict";
+    'use strict';
+
     ovni = new THREE.Object3D();
     createOvniBody(ovni);
     createOvniCockpit(ovni);
@@ -475,51 +559,51 @@ function createOvni() {
 
 
 function createOvniBody(obj) {
-    "use strict";
+    'use strict';
+
     const geometry = new THREE.SphereGeometry(1, radialSegments, radialSegments);
     geometry.scale(r2Body, rBody, r2Body);
-    const material = new THREE.MeshBasicMaterial({
-        color: 0x808080,
-    });
+    const material = new THREE.MeshBasicMaterial({ color: 0x808080 });
     bodyMesh = new THREE.Mesh(geometry, material);
     bodyMesh.position.set(0, 0, 0);
     obj.add(bodyMesh);
 }
 
 function createOvniCockpit(obj) {
-    "use strict";
-    const geometry = new THREE.SphereGeometry(rCockpit, radialSegments, radialSegments, 0, Math.PI * 2, 0, Math.PI / 2);
-    const material = new THREE.MeshBasicMaterial({
-        color : 0xbbf3f9,
-    });
+    'use strict';
+
+    const geometry = new THREE.SphereGeometry(rCockpit, radialSegments, radialSegments, 
+                0, Math.PI * 2, 0, Math.PI / 2);
+    const material = new THREE.MeshBasicMaterial({ color : 0xbbf3f9 });
     cockpitMesh = new THREE.Mesh(geometry, material);
-    cockpitMesh.position.set(0, rCockpit-1.2, 0);
+    cockpitMesh.position.set(0, ovniCockpit, 0);
     obj.add(cockpitMesh);
 }
 
 function createOvniBottom(obj) {
-    "use strict";
+    'use strict';
+
     const geometry = new THREE.CylinderGeometry(1.5, 1.5, 1, radialSegments);
-    const material = new THREE.MeshBasicMaterial({
-        color : 0xbbf3f9,
-    });
+    const material = new THREE.MeshBasicMaterial({ color : 0xbbf3f9 });
     bottomMesh = new THREE.Mesh(geometry, material);
-    bottomMesh.position.set(0, -rCockpit - hCyl/2 + 1, 0);
+    bottomMesh.position.set(0, ovniBottom, 0);
     obj.add(bottomMesh);
 }
 
 function createOvniSpheres(obj) {
-    createSphere(obj, xSphere, ySphere+0.2, 0);
-    createSphere(obj, - xSphere, ySphere+0.2, 0);
-    createSphere(obj, 0, ySphere+0.2, xSphere);
-    createSphere(obj, 0, ySphere+0.2, - xSphere);
+    'use strict';
+
+    createSphere(obj, xSphere, ySphere, 0);
+    createSphere(obj, - xSphere, ySphere, 0);
+    createSphere(obj, 0, ySphere, xSphere);
+    createSphere(obj, 0, ySphere, - xSphere);
 }
 
 function createSphere(obj, x, y , z) {
+    'use strict';
+
     const geometry = new THREE.SphereGeometry(rSphere, radialSegments, radialSegments);
-    const material = new THREE.MeshBasicMaterial({
-        color : 0xff645f,
-    });
+    const material = new THREE.MeshBasicMaterial({ color : 0xff645f });
     const sphere = new THREE.Mesh(geometry, material);
     sphere.position.set(x, y, z);
     spheres.push(sphere);
@@ -527,7 +611,7 @@ function createSphere(obj, x, y , z) {
 }
 
 function createHouse(x, y, z) {
-    "use strict";
+    'use strict';
 
     //Define vertices for the house walls
     const spaceBetween = (houseL - doorL - 2*windowL)/4;
@@ -739,9 +823,31 @@ function handleCollisions(){
 ////////////
 /* UPDATE */
 ////////////
+function moveX(object, value, deltaTime) {
+    'use strict';
+
+    const vec = new THREE.Vector3(value*deltaTime, 0, 0);
+    object.position.add(vec);
+}
+
+function moveZ(object, value, deltaTime) {
+    'use strict';
+
+    const vec = new THREE.Vector3(0, 0, value*deltaTime);
+    object.position.add(vec);
+}
+
 function update(){
     'use strict';
-    var velocityValue = 10;
+
+    if (generatingGroundTexture) {
+        if (!generatingSkyTexture)
+            createGroundTexture();
+    }
+    if (generatingSkyTexture) {
+        if (!generatingGroundTexture)
+            createSkyTexture();
+    }
     if (directionalLightSwitch && ! alreadySwitchDirectionalLight) {
         directionalLight.visible = ! directionalLight.visible;
         alreadySwitchDirectionalLight = true;
@@ -757,7 +863,6 @@ function update(){
         }
         alreadySwitchPointLight = true;
     }   
-    
     if (upArrowPressed) {
         moveX(ovni, velocityValue, deltaTime);
     }
@@ -807,16 +912,6 @@ function update(){
     }
 }
 
-function moveX(object, value, deltaTime) {
-    const vec = new THREE.Vector3(value*deltaTime, 0, 0);
-    object.position.add(vec);
-}
-
-function moveZ(object, value, deltaTime) {
-    const vec = new THREE.Vector3(0, 0, value*deltaTime);
-    object.position.add(vec);
-}
-
 /////////////
 /* DISPLAY */
 /////////////
@@ -843,19 +938,19 @@ function init() {
     rendererSecondary.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(rendererSecondary.domElement);
 
-    document.body.appendChild( VRButton.createButton( renderer ) );
+    document.body.appendChild(VRButton.createButton(renderer ));
     renderer.xr.enabled = true;
 
     createScene();
     createCamera();
 
-    createTrees(7);
+    createTrees(numberOfTrees);
     createGround();
     createSkydome();
     createMoon();
     createOvni();
     createLights();
-    createHouse(-5, 20, -20);
+    createHouse(housePos.x, housePos.y, housePos.z);
 
     globalClock = new THREE.Clock(true);
     deltaTime = globalClock.getDelta();
@@ -883,12 +978,14 @@ function animate() {
     update();
     render();
 
-    if (!vrOn)
+    if (!vrOn) {
         requestAnimationFrame(animate);
-    else 
+    }
+    else {
         renderer.setAnimationLoop( function () {
-            renderer.render( scene, mainCamera );
+            renderer.render(scene, mainCamera);
         } );
+    } 
 }
 
 ////////////////////////////
@@ -910,12 +1007,13 @@ function onResize() {
 ///////////////////////
 function onKeyDown(e) {
     'use strict';
+    
     switch (e.keyCode) {
-        case 49:
-            createGroundTexture();
+        case 49: // number 1
+            generatingGroundTexture = true
             break;
-        case 50: 
-            createSkyTexture();
+        case 50: // number 2
+            generatingSkyTexture = true;
             break;
         case 68: // letter D/d
             directionalLightSwitch = true;
@@ -960,7 +1058,14 @@ function onKeyDown(e) {
 ///////////////////////
 function onKeyUp(e){
     'use strict';
+
     switch (e.keyCode) {
+        case 49: // number 1
+            generatingGroundTexture = false;
+            break;
+        case 50: // number 2
+            generatingSkyTexture = false;
+            break;
         case 68: // letter D/d
             directionalLightSwitch = false;
             alreadySwitchDirectionalLight = false;
