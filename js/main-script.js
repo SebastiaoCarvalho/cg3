@@ -76,7 +76,8 @@ var skydomeMaterial = new THREE.MeshPhongMaterial({
 });
 
 /* Texture flags */
-var generatingGroundTexture = false, generatingSkyTexture = false;
+var generatingGroundTexture = false, alreadySwitchGroundTexture = false;
+var generatingSkyTexture = false, alreadySwitchSkydomeTexture = false;
 
 /* Colors for the textures */
 var colorCodes;
@@ -840,13 +841,17 @@ function moveZ(object, value, deltaTime) {
 function update(){
     'use strict';
 
-    if (generatingGroundTexture) {
-        if (!generatingSkyTexture)
+    if (generatingGroundTexture && ! alreadySwitchGroundTexture) {
+        if (!generatingSkyTexture) {
             createGroundTexture();
+            alreadySwitchGroundTexture = true;
+        }
     }
-    if (generatingSkyTexture) {
-        if (!generatingGroundTexture)
+    if (generatingSkyTexture && ! alreadySwitchSkydomeTexture) {
+        if (!generatingGroundTexture) {
             createSkyTexture();
+            alreadySwitchSkydomeTexture = true;
+        }
     }
     if (directionalLightSwitch && ! alreadySwitchDirectionalLight) {
         directionalLight.visible = ! directionalLight.visible;
@@ -1056,9 +1061,11 @@ function onKeyUp(e){
     switch (e.keyCode) {
         case 49: // number 1
             generatingGroundTexture = false;
+            alreadySwitchGroundTexture = false;
             break;
         case 50: // number 2
             generatingSkyTexture = false;
+            alreadySwitchSkydomeTexture = false;
             break;
         case 68: // letter D/d
             directionalLightSwitch = false;
