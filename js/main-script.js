@@ -961,12 +961,6 @@ function init() {
     renderer.xr.addEventListener('sessionstart', onVRSessionStart);
 }
 
-function onVRSessionStart() {
-    vrOn = true;
-    scene.position.set(20, -25, -10);    
-}
-
-
 /////////////////////
 /* ANIMATION CYCLE */
 /////////////////////
@@ -1103,4 +1097,13 @@ function onKeyUp(e){
             changeToBasic = false;
             break;
     }
+}
+
+///////////////////////////
+/* SESSION STARTCALLBACK */
+///////////////////////////
+
+function onVRSessionStart() {
+    vrOn = true;
+    scene.position.set(20, -25, -10);    
 }
