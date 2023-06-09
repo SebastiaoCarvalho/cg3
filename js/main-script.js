@@ -108,6 +108,12 @@ const rSphere = 0.5;
 const xSphere = 5;
 const ySphere = - 2;
 
+/* Ovni rotation */
+const rotationSpeed = 2;
+
+/* Ovni height */
+const hOvni = 40;
+
 /* House */
 const houseL = 20, houseD = 10, houseH = 15;
 const roofH = 5;
@@ -161,6 +167,9 @@ var moonMaterialToon = new THREE.MeshToonMaterial({
 /* VR on */ 
 var vrOn = false;
 
+/* Radial segments for spheres and cylinders*/
+const radialSegments = 32;
+
 /////////////////////
 /* CREATE SCENE(S) */
 /////////////////////
@@ -199,21 +208,20 @@ function createLights() {
     directionalLight.position.set(moonMesh.position.x, moonMesh.position.y - 10, moonMesh.position.z);
     directionalLight.castShadow = true;
     scene.add(directionalLight.target);
-    directionalLight.target.position.set(1, 20, 2);
+    directionalLight.target.position.set(1, 20, 2); // target different than the origin
     scene.add(directionalLight);
 
     // Spotlight
     spotLight = new THREE.SpotLight(0xd4d400, spotLightIntensity, 0, Math.PI / 6, 0);
-    spotLight.position.set(0, ovni.position.y - hCyl - rBody, 0);
     spotLight.castShadow = true;
-    scene.add(spotLight.target);
-    scene.add(spotLight);
+    bottomMesh.add(spotLight);
+    spotLight.target.position.set(0 , -hOvni + hCyl/2 + rBody/2, 0);
+    bottomMesh.add(spotLight.target);
 
     // Point light
     for (var sphere of spheres) {
         const pointLight = new THREE.PointLight(0xff645f, pointLightIntensity, 100);
-        pointLight.position.set(ovni.position.x + sphere.position.x, ovni.position.y + sphere.position.y, ovni.position.z + sphere.position.z);
-        scene.add(pointLight);
+        sphere.add(pointLight);
         pointLights.push(pointLight);
     }
 }
@@ -278,7 +286,7 @@ function createTree(posVector, dimensionVector) {
 }
 
 function addBranch(obj, posVector, dimensionVector, rotationVector) {
-    const geometry = new THREE.CylinderGeometry(dimensionVector.x,dimensionVector.y,dimensionVector.z,32);
+    const geometry = new THREE.CylinderGeometry(dimensionVector.x,dimensionVector.y,dimensionVector.z, radialSegments);
     const material = new THREE.MeshBasicMaterial({
         color: 0x884802,
     });
@@ -299,7 +307,7 @@ function addBranch(obj, posVector, dimensionVector, rotationVector) {
 }
 
 function addTopPartOnBranch(obj, posVector, dimensionVector) {
-    const ellipsoidGeometry = new THREE.SphereGeometry(0.5, 32, 16);
+    const ellipsoidGeometry = new THREE.SphereGeometry(0.5, radialSegments, 16);
     const material = new THREE.MeshBasicMaterial({
         color: 0x006400,
     });
@@ -313,7 +321,7 @@ function addTopPartOnBranch(obj, posVector, dimensionVector) {
 }
 
 function addTopOnTree(obj, posVector, dimensionVector) {
-    const ellipsoidGeometry = new THREE.SphereGeometry(0.5, 32, 16);
+    const ellipsoidGeometry = new THREE.SphereGeometry(0.5, radialSegments, 16);
     const material = new THREE.MeshBasicMaterial({
         color: 0x006400,
     });
@@ -330,7 +338,7 @@ function createSkydome() {
     "use strict";
     skydome = new THREE.Object3D();
     skydome.position.set(0, 10, 0);
-    const geometry = new THREE.SphereGeometry(60, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+    const geometry = new THREE.SphereGeometry(60, radialSegments, radialSegments, 0, Math.PI * 2, 0, Math.PI / 2);
     const mesh = new THREE.Mesh(geometry, skydomeMaterial);
     mesh.position.set(0, 0, 0);
     skydome.add(mesh);
@@ -400,7 +408,7 @@ function createSkyTexture() {
     rendererSecondary.render(sceneSecondary, cameraSky);
 
     var texture = new THREE.CanvasTexture(rendererSecondary.domElement, THREE.UVMapping, THREE.RepeatWrapping, THREE.RepeatWrapping);
-    skydomeMaterial = new THREE.MeshBasicMaterial({ 
+    skydomeMaterial = new THREE.MeshPhongMaterial({ 
         map: texture,
         side: THREE.BackSide,
     });    
@@ -431,7 +439,7 @@ function fillSceneGround(object) {
 function addCircle(x, y, i, object) {
     "use strict";
     var i = Math.floor(i/125);
-    var geometry = new THREE.CircleGeometry(0.01, 32); 
+    var geometry = new THREE.CircleGeometry(0.01, radialSegments); 
     var material = new THREE.MeshBasicMaterial( { color: colorCodes[i] } ); 
     const circle = new THREE.Mesh(geometry, material); 
     circle.position.set(x,y,0);
@@ -448,7 +456,7 @@ function createGround() {
 
 function createMoon() {
     "use strict";    
-    const geometry = new THREE.SphereGeometry(10, 32, 32);
+    const geometry = new THREE.SphereGeometry(10, radialSegments, radialSegments);
     moonMesh = new THREE.Mesh(geometry, moonMaterial);
     moonMesh.position.set(0, 55, 0);
     scene.add(moonMesh);
@@ -461,14 +469,14 @@ function createOvni() {
     createOvniCockpit(ovni);
     createOvniBottom(ovni);
     createOvniSpheres(ovni);
-    ovni.position.set(0, 40, 0)
+    ovni.position.set(0, hOvni, 0)
     scene.add(ovni);
 }
 
 
 function createOvniBody(obj) {
     "use strict";
-    const geometry = new THREE.SphereGeometry(1, 32, 32);
+    const geometry = new THREE.SphereGeometry(1, radialSegments, radialSegments);
     geometry.scale(r2Body, rBody, r2Body);
     const material = new THREE.MeshBasicMaterial({
         color: 0x808080,
@@ -480,7 +488,7 @@ function createOvniBody(obj) {
 
 function createOvniCockpit(obj) {
     "use strict";
-    const geometry = new THREE.SphereGeometry(rCockpit, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
+    const geometry = new THREE.SphereGeometry(rCockpit, radialSegments, radialSegments, 0, Math.PI * 2, 0, Math.PI / 2);
     const material = new THREE.MeshBasicMaterial({
         color : 0xbbf3f9,
     });
@@ -491,7 +499,7 @@ function createOvniCockpit(obj) {
 
 function createOvniBottom(obj) {
     "use strict";
-    const geometry = new THREE.CylinderGeometry(1.5, 1.5, 1, 32);
+    const geometry = new THREE.CylinderGeometry(1.5, 1.5, 1, radialSegments);
     const material = new THREE.MeshBasicMaterial({
         color : 0xbbf3f9,
     });
@@ -508,7 +516,7 @@ function createOvniSpheres(obj) {
 }
 
 function createSphere(obj, x, y , z) {
-    const geometry = new THREE.SphereGeometry(rSphere, 32, 32);
+    const geometry = new THREE.SphereGeometry(rSphere, radialSegments, radialSegments);
     const material = new THREE.MeshBasicMaterial({
         color : 0xff645f,
     });
@@ -733,10 +741,6 @@ function handleCollisions(){
 ////////////
 function update(){
     'use strict';
-    spotLight.target.position.set(ovni.position.x, 0, ovni.position.z);
-    for (var i = 0; i < pointLights.length; i++) {
-        pointLights[i].position.set(ovni.position.x + spheres[i].position.x, ovni.position.y + spheres[i].position.y, ovni.position.z + spheres[i].position.z);
-    }
     var velocityValue = 10;
     if (directionalLightSwitch && ! alreadySwitchDirectionalLight) {
         directionalLight.visible = ! directionalLight.visible;
@@ -756,22 +760,18 @@ function update(){
     
     if (upArrowPressed) {
         moveX(ovni, velocityValue, deltaTime);
-        moveX(spotLight, velocityValue, deltaTime);
     }
     if (leftArrowPressed) {
         moveZ(ovni, -velocityValue, deltaTime);
-        moveZ(spotLight, -velocityValue, deltaTime);
     }
     if (rightArrowPressed) {
         moveZ(ovni, velocityValue, deltaTime);
-        moveZ(spotLight, velocityValue, deltaTime);
     }
     if (downArrowPressed) {
         moveX(ovni, -velocityValue, deltaTime);
-        moveX(spotLight, -velocityValue, deltaTime);
     }
 
-    ovni.rotation.y += 0.01;
+    ovni.rotation.y += rotationSpeed * deltaTime;
 
     if(changeToBasic){
         houseMesh.material = houseMaterial;
